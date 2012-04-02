@@ -276,7 +276,14 @@ XrmServiceToolkit.Rest = function () {
         }
         else {
             if (typeof Xrm != "undefined") {
-                return Xrm.Page.context;
+                if (typeof Xrm != "undefined") {
+                    return Xrm.Page.context;
+                }
+                else {
+                    if (typeof window.parent.Xrm != "undefined") {
+                        return window.parent.Xrm.Page.context;
+                    }
+                }
             }
             else {
                 throw new Error("Context is not available.");
@@ -678,7 +685,7 @@ XrmServiceToolkit.Rest = function () {
                     var returned = JSON.parse(this.responseText, _dateReviver).d;
                     successCallback(returned.results);
                     if (returned.__next != null) {
-                        var queryOptions = returned.__next.substring((_ODataPath() + type + "Set").length);
+                        var queryOptions = returned.__next.substring((_ODataPath() + type).length);
                         _retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, OnComplete);
                     }
                     else {
@@ -841,7 +848,7 @@ XrmServiceToolkit.Rest = function () {
         Associate: _associateRecord,
         Disassociate: _disassociateRecord
     };
-    } ();
+} ();
 
 XrmServiceToolkit.Soap = function () {
 
@@ -936,7 +943,14 @@ XrmServiceToolkit.Soap = function () {
         }
         else {
             if (typeof Xrm != "undefined") {
-                return Xrm.Page.context;
+                if (typeof Xrm != "undefined") {
+                    return Xrm.Page.context;
+                }
+                else {
+                    if (typeof window.parent.Xrm != "undefined") {
+                        return window.parent.Xrm.Page.context;
+                    }
+                }
             }
             else {
                 throw new Error("Context is not available.");

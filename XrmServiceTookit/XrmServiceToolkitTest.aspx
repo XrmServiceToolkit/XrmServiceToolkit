@@ -193,6 +193,24 @@
             );
         });
 
+        test("Test XrmServiceToolkit.Rest.RetrieveMultiple(contact) method to get the contacts", function () {
+
+            XrmServiceToolkit.Rest.RetrieveMultiple(
+                "ContactSet",
+                "$select=ContactId, FullName",
+                function (results) {
+                    ok(results.length > 0, results.length.toString() + " records should have been retrieved.");
+                },
+                function (error) {
+                    equal(true, false, error.message);
+                },
+                function onComplete() {
+
+                },
+                false
+            );
+        });
+
         module("[Soap Functions]");
         
         test("Test XrmServiceToolkit.Soap.Execute() method using WhoAmIRequest message to get current user's ID", function () {
