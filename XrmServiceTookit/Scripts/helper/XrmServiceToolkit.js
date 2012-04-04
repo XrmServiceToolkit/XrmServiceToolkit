@@ -1532,18 +1532,18 @@ XrmServiceToolkit.Soap = function () {
         /// queryOptions.attributes is a array represents the attributes of the entity to query
         /// queryOptions.values is a array represents the values of the attributes to query
         /// queryOptions.columnSet is a array represents the attributes of the entity to return
-        /// queryOptions.orderby is a array represents the oder conditons of the results
+        /// queryOptions.orderBy is a array represents the oder conditons of the results
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
         var entityName = queryOptions.entityName;
         var attributes = queryOptions.attributes;
         var values = queryOptions.values;
         var columnSet = queryOptions.columnSet;
-        var orderby = queryOptions.orderby || '';
+        var orderBy = queryOptions.orderBy || '';
 
         attributes = _isArray(attributes) ? attributes : [attributes];
         values = _isArray(values) ? values : [values];
-        orderby = (!!orderby && _isArray(orderby)) ? orderby : [orderby];
+        orderBy = (!!orderBy && _isArray(orderBy)) ? orderBy : [orderBy];
         columnSet = (!!columnSet && _isArray(columnSet)) ? columnSet : [columnSet];
 
         for (var i = 0; i < values.length; i++) {
@@ -1555,7 +1555,7 @@ XrmServiceToolkit.Soap = function () {
                     "<fetch mapping='logical'>",
                     "   <entity name='", entityName, "'>",
                            _joinArray("<attribute name='", columnSet, "' />"),
-                           _joinArray("<order attribute='", orderby, "' />"),
+                           _joinArray("<order attribute='", orderBy, "' />"),
                     "      <filter>",
                               _joinConditionPair(attributes, values),
                     "      </filter>",

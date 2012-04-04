@@ -462,7 +462,7 @@
                 attributes: ["firstname", "middlename", "lastname"],
                 values: ["Diane", "<&>", "Lopez"],
                 columnSet: ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"],
-                orderby: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
+                orderBy: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
             };
 
             var fetchedContacts = XrmServiceToolkit.Soap.QueryByAttribute(queryOptions);
