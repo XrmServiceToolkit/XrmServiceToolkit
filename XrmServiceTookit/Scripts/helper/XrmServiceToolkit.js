@@ -1,7 +1,7 @@
 ﻿/**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @version : 1.0
+* @version : 1.1
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -10,6 +10,15 @@
 *   The Soap functions were inspired by Daniel Cai && Jamie Miley && Paul Way && Customer Effective.
 *   Additional thanks to all contributors of MSCRM and i have learned a lot from you all.
 * Date: February, 2012
+
+* Whats new:
+*   Version: 1.1 
+*   Date: April, 2012
+*       New Function - XrmServiceToolkit.Soap.Assign
+*       New Function - XrmServiceToolkit.Soap.GrantAccess
+*       New Function - XrmServiceToolkit.Soap.ModifyAccess
+*       New Function - XrmServiceToolkit.Soap.GrantAccess
+*       New Function - XrmServiceToolkit.Soap.RetrievePrincipalAccess
 */
 
 XrmServiceToolkit = function () {
@@ -918,7 +927,7 @@ XrmServiceToolkit.Soap = function () {
         return s;
     };
 
-    var _encodeDate = function(dateTime) {
+    var _encodeDate = function (dateTime) {
         return dateTime.getFullYear() + "-" +
                _padNumber(dateTime.getMonth() + 1) + "-" +
                _padNumber(dateTime.getDate()) + "T" +
@@ -927,7 +936,7 @@ XrmServiceToolkit.Soap = function () {
                _padNumber(dateTime.getSeconds());
     };
 
-    var _encodeValue = function(value) {
+    var _encodeValue = function (value) {
         return (typeof value === "object" && value.getTime)
                ? _encodeDate(value)
                : ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlEncode(value) : CrmXmlEncode(value));
@@ -1018,7 +1027,7 @@ XrmServiceToolkit.Soap = function () {
         this.type = 'OptionSetValue';
     };
 
-    var _businessEntity = function (logicalName,id) {
+    var _businessEntity = function (logicalName, id) {
         ///<summary>
         /// A object represents a business entity for CRM 2011.
         ///</summary>
@@ -1038,13 +1047,13 @@ XrmServiceToolkit.Soap = function () {
         * @return {String} The serialized XML string of CRM entity.
         */
         serialize: function () {
-                  
+
             var xml = ['<entity xmlns:a="http://schemas.microsoft.com/xrm/2011/Contracts">'];
             xml.push('<a:Attributes xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic">');
 
             for (var attributeName in this.attributes) {
                 var attribute = this.attributes[attributeName];
-                
+
                 xml.push('<a:KeyValuePairOfstringanyType>');
                 xml.push('<b:key>', attributeName, '</b:key>');
 
@@ -1070,8 +1079,8 @@ XrmServiceToolkit.Soap = function () {
                             var _logicalName = (attribute.hasOwnProperty("logicalName")) ? attribute["logicalName"] : attribute;
                             var encodedLogicalName = _encodeValue(_logicalName);
                             xml.push('<b:value i:type="a:EntityReference">');
-                            xml.push('<a:Id>',encodedId,'</a:Id>');
-                            xml.push('<a:LogicalName>',encodedLogicalName,'</a:LogicalName>');
+                            xml.push('<a:Id>', encodedId, '</a:Id>');
+                            xml.push('<a:LogicalName>', encodedLogicalName, '</a:LogicalName>');
                             xml.push('<a:Name i:nil="true" />', '</b:value>');
                             break;
 
@@ -1081,7 +1090,7 @@ XrmServiceToolkit.Soap = function () {
                             xml.push('<b:value i:type="a:Money">');
                             xml.push('<a:Value>', encodedValue, '</a:Value>', '</b:value>');
                             break;
-                        
+
                         case "guid":
                             var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
                             var encodedValue = _encodeValue(value);
@@ -1103,7 +1112,7 @@ XrmServiceToolkit.Soap = function () {
                             sType = (typeof value === "object" && value.getTime) ? "dateTime" : sType;
                             xml.push('<b:value i:type="c:', sType, '" xmlns:c="http://www.w3.org/2001/XMLSchema">', encodedValue, '</b:value>');
                             break;
-                    }   
+                    }
                 }
                 xml.push('</a:KeyValuePairOfstringanyType>');
             }
@@ -1130,26 +1139,26 @@ XrmServiceToolkit.Soap = function () {
                     case "Attributes":
                         var attr = resultNodes[j];
                         for (var k = 0; k < attr.childNodes.length; k++) {
- 
+
                             // Establish the Key for the Attribute
                             var sKey = attr.childNodes[k].firstChild.text;
                             var sType = '';
- 
+
                             // Determine the Type of Attribute value we should expect
                             for (var l = 0; l < attr.childNodes[k].childNodes[1].attributes.length; l++) {
                                 if (attr.childNodes[k].childNodes[1].attributes[l].baseName == 'type') {
                                     sType = attr.childNodes[k].childNodes[1].attributes[l].text;
                                 }
                             }
- 
+
                             switch (sType) {
                                 case "a:OptionSetValue":
                                     var entOSV = new _xrmOptionSetValue();
-                                    entOSV.type = sType.replace('a:','');
+                                    entOSV.type = sType.replace('a:', '');
                                     entOSV.value = parseInt(attr.childNodes[k].childNodes[1].text);
                                     obj[sKey] = entOSV;
-                                break;
- 
+                                    break;
+
                                 case "a:EntityReference":
                                     var entRef = new _xrmEntityReference();
                                     entRef.type = sType.replace('a:', '');
@@ -1157,57 +1166,57 @@ XrmServiceToolkit.Soap = function () {
                                     entRef.logicalName = attr.childNodes[k].childNodes[1].childNodes[1].text;
                                     entRef.name = attr.childNodes[k].childNodes[1].childNodes[2].text;
                                     obj[sKey] = entRef;
-                                break;
+                                    break;
 
-                            case "a:Money":
+                                case "a:Money":
                                     var entCV = new _xrmValue();
                                     entCV.type = sType.replace('a:', '');
                                     entCV.value = parseFloat(attr.childNodes[k].childNodes[1].text);
                                     obj[sKey] = entCV;
-                                break;
+                                    break;
 
-                            default:
-                                var entCV = new _xrmValue();
-                                entCV.type = sType.replace('c:', '').replace('a:', '');
-                                if (entCV.type == "int") {
-                                    entCV.value = parseInt(attr.childNodes[k].childNodes[1].text);
-                                }
-                                else if (entCV.type == "decimal") {
-                                    entCV.value = parseFloat(attr.childNodes[k].childNodes[1].text);
-                                }
-                                else if (entCV.type == "dateTime") {
-                                    entCV.value = new Date(attr.childNodes[k].childNodes[1].text);
-                                }
-                                else if (entCV.type == "boolean") {
-                                    entCV.value = (attr.childNodes[k].childNodes[1].text == 'false') ? false : true;
-                                }
-                                else {
-                                    entCV.value = attr.childNodes[k].childNodes[1].text;
-                                }                                
-                                obj[sKey] = entCV;
-                            break;
+                                default:
+                                    var entCV = new _xrmValue();
+                                    entCV.type = sType.replace('c:', '').replace('a:', '');
+                                    if (entCV.type == "int") {
+                                        entCV.value = parseInt(attr.childNodes[k].childNodes[1].text);
+                                    }
+                                    else if (entCV.type == "decimal") {
+                                        entCV.value = parseFloat(attr.childNodes[k].childNodes[1].text);
+                                    }
+                                    else if (entCV.type == "dateTime") {
+                                        entCV.value = new Date(attr.childNodes[k].childNodes[1].text);
+                                    }
+                                    else if (entCV.type == "boolean") {
+                                        entCV.value = (attr.childNodes[k].childNodes[1].text == 'false') ? false : true;
+                                    }
+                                    else {
+                                        entCV.value = attr.childNodes[k].childNodes[1].text;
+                                    }
+                                    obj[sKey] = entCV;
+                                    break;
                             }
                         }
                         this.attributes = obj;
-                    break;
- 
+                        break;
+
                     case "Id":
                         this.id = resultNodes[j].text;
-                    break;
- 
+                        break;
+
                     case "LogicalName":
                         this.logicalName = resultNodes[j].text;
-                    break;
- 
+                        break;
+
                     case "FormattedValues":
                         var foVal = resultNodes[j];
- 
+
                         for (var k = 0; k < foVal.childNodes.length; k++) {
                             // Establish the Key, we are going to fill in the formatted value of the already found attribute
                             var sKey = foVal.childNodes[k].firstChild.text;
                             this.attributes[sKey].formattedValue = foVal.childNodes[k].childNodes[1].text;
                         }
-                    break;
+                        break;
                 }
             }
         }
@@ -1657,7 +1666,7 @@ XrmServiceToolkit.Soap = function () {
                 output.push("<a:EntityReference>",
                                 "<a:Id>", relatedEntities[i].id, "</a:Id>",
                                 "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
-                                "<a:Name i:nil='true' />", 
+                                "<a:Name i:nil='true' />",
                             "</a:EntityReference>");
             }
         }
@@ -1684,8 +1693,8 @@ XrmServiceToolkit.Soap = function () {
                     "</a:KeyValuePairOfstringanyType>",
                     "<a:KeyValuePairOfstringanyType>",
                     "<b:key>RelatedEntities</b:key>",
-                    "<b:value i:type='a:EntityReferenceCollection'>", 
-                        relatedXml, 
+                    "<b:value i:type='a:EntityReferenceCollection'>",
+                        relatedXml,
                     "</b:value>",
                     "</a:KeyValuePairOfstringanyType>",
                 "</a:Parameters>",
@@ -1786,9 +1795,9 @@ XrmServiceToolkit.Soap = function () {
             else
                 callback(result);
         });
-    };    
+    };
 
-    var _getCurrentUserId = function() {
+    var _getCurrentUserId = function () {
         ///<summary>
         /// Sends synchronous request to retrieve the GUID of the current user.
         ///</summary>
@@ -1869,6 +1878,309 @@ XrmServiceToolkit.Soap = function () {
         return false;
     };
 
+    var _assign = function (targetEntityName, targetId, assigneeEntityName, assigneeId, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to assign an existing record to a user / a team.
+        ///</summary>
+        ///<param name="targetEntityName" type="String">
+        /// A JavaScript String corresponding to the schema name of the target entity
+        /// that is used for assign operations.
+        ///<param name="targetId" type="String">
+        /// A JavaScript String corresponding to the GUID of the target entity
+        /// that is used for assign operations.
+        ///<param name="assigneeEntityName" type="String">
+        /// A JavaScript String corresponding to the schema name of the assignee entity
+        /// that is used for assign operations.
+        ///<param name="assigneeId" type="String">
+        /// A JavaScript String corresponding to the GUID of the assignee entity
+        /// that is used for assign operations.
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+
+        var request = "<request i:type='b:AssignRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
+                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
+                          "<a:KeyValuePairOfstringanyType>" +
+                            "<c:key>Target</c:key>" +
+                            "<c:value i:type='a:EntityReference'>" +
+                              "<a:Id>" + targetId + "</a:Id>" +
+                              "<a:LogicalName>" + targetEntityName + "</a:LogicalName>" +
+                              "<a:Name i:nil='true' />" +
+                            "</c:value>" +
+                          "</a:KeyValuePairOfstringanyType>" +
+                          "<a:KeyValuePairOfstringanyType>" +
+                            "<c:key>Assignee</c:key>" +
+                            "<c:value i:type='a:EntityReference'>" +
+                              "<a:Id>" + assigneeId + "</a:Id>" +
+                              "<a:LogicalName>" + assigneeEntityName + "</a:LogicalName>" +
+                              "<a:Name i:nil='true' />" +
+                            "</c:value>" +
+                          "</a:KeyValuePairOfstringanyType>" +
+                        "</a:Parameters>" +
+                        "<a:RequestId i:nil='true' />" +
+                        "<a:RequestName>Assign</a:RequestName>" +
+                      "</request>"
+
+        var async = !!callback;
+
+        return _doRequest(request, "Execute", async, function (resultXml) {
+
+            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
+            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+            if (!async)
+                return result;
+            else
+                callback(result);
+        });
+    };
+
+    var _grantAccess = function (accessOptions, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to do a grantAccess request. 
+        /// Levels of Access Options are: AppendAccess, AppendToAccess, AssignAccess, CreateAccess, DeleteAccess, None, ReadAccess, ShareAccess, and WriteAccess
+        ///</summary>
+        ///<param name="accessOptions" type="Object">
+        /// A JavaScript Object with properties corresponding to the grantAccess Criteria 
+        /// that are valid for grantAccess operations.
+        /// accessOptions.targetEntityName is a string represents the name of the target entity
+        /// accessOptions.targetEntityId is a string represents the GUID of the target entity
+        /// accessOptions.principalEntityName is a string represents the name of the principal entity
+        /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
+        /// accessOptions.accessRights is a array represents the access conditons of the results
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+
+        var targetEntityName = accessOptions.targetEntityName;
+        var targetEntityId = accessOptions.targetEntityId;
+        var principalEntityName = accessOptions.principalEntityName;
+        var principalEntityId = accessOptions.principalEntityId;
+        var accessRights = accessOptions.accessRights;
+
+        accessRights = _isArray(accessRights) ? accessRights : [accessRights];
+
+        var accessRightString = "";
+        for (var i = 0; i < accessRights.length; i++) {
+            accessRightString += _encodeValue(accessRights[i]) + " ";
+        }
+
+        var request = "<request i:type='b:GrantAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
+	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Target</c:key>" +
+		                    "<c:value i:type='a:EntityReference'>" +
+		                      "<a:Id>" + targetEntityId + "</a:Id>" +
+		                      "<a:LogicalName>" + targetEntityName + "</a:LogicalName>" +
+		                      "<a:Name i:nil='true' />" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>PrincipalAccess</c:key>" +
+		                    "<c:value i:type='b:PrincipalAccess'>" +
+		                      "<b:AccessMask>" + accessRightString + "</b:AccessMask>" +
+		                      "<b:Principal>" +
+			                    "<a:Id>" + principalEntityId + "</a:Id>" +
+			                    "<a:LogicalName>" + principalEntityName + "</a:LogicalName>" +
+			                    "<a:Name i:nil='true' />" +
+		                      "</b:Principal>" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                    "</a:Parameters>" +
+	                    "<a:RequestId i:nil='true' />" +
+	                    "<a:RequestName>GrantAccess</a:RequestName>" +
+                    "</request>"
+
+        var async = !!callback;
+
+        return _doRequest(request, "Execute", async, function (resultXml) {
+
+            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
+            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+            if (!async)
+                return result;
+            else
+                callback(result);
+        });
+
+    };
+
+    var _modifyAccess = function (accessOptions, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to do a modifyAccess request. 
+        /// Levels of Access Options are: AppendAccess, AppendToAccess, AssignAccess, CreateAccess, DeleteAccess, None, ReadAccess, ShareAccess, and WriteAccess
+        ///</summary>
+        ///<param name="accessOptions" type="Object">
+        /// A JavaScript Object with properties corresponding to the modifyAccess Criteria 
+        /// that are valid for modifyAccess operations.
+        /// accessOptions.targetEntityName is a string represents the name of the target entity
+        /// accessOptions.targetEntityId is a string represents the GUID of the target entity
+        /// accessOptions.principalEntityName is a string represents the name of the principal entity
+        /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
+        /// accessOptions.accessRights is a array represents the access conditons of the results
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+
+        var targetEntityName = accessOptions.targetEntityName;
+        var targetEntityId = accessOptions.targetEntityId;
+        var principalEntityName = accessOptions.principalEntityName;
+        var principalEntityId = accessOptions.principalEntityId;
+        var accessRights = accessOptions.accessRights;
+
+        accessRights = _isArray(accessRights) ? accessRights : [accessRights];
+
+        var accessRightString = "";
+        for (var i = 0; i < accessRights.length; i++) {
+            accessRightString += _encodeValue(accessRights[i]) + " ";
+        }
+
+        var request = "<request i:type='b:ModifyAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
+	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Target</c:key>" +
+		                    "<c:value i:type='a:EntityReference'>" +
+		                      "<a:Id>" + targetEntityId + "</a:Id>" +
+		                      "<a:LogicalName>" + targetEntityName + "</a:LogicalName>" +
+		                      "<a:Name i:nil='true' />" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>PrincipalAccess</c:key>" +
+		                    "<c:value i:type='b:PrincipalAccess'>" +
+		                      "<b:AccessMask>" + accessRightString + "</b:AccessMask>" +
+		                      "<b:Principal>" +
+			                    "<a:Id>" + principalEntityId + "</a:Id>" +
+			                    "<a:LogicalName>" + principalEntityName + "</a:LogicalName>" +
+			                    "<a:Name i:nil='true' />" +
+		                      "</b:Principal>" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                    "</a:Parameters>" +
+	                    "<a:RequestId i:nil='true' />" +
+	                    "<a:RequestName>ModifyAccess</a:RequestName>" +
+                    "</request>"
+
+        var async = !!callback;
+
+        return _doRequest(request, "Execute", async, function (resultXml) {
+
+            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
+            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+            if (!async)
+                return result;
+            else
+                callback(result);
+        });
+
+    };
+
+    var _revokeAccess = function (accessOptions, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to do a revokeAccess request. 
+        ///</summary>
+        ///<param name="accessOptions" type="Object">
+        /// A JavaScript Object with properties corresponding to the revokeAccess Criteria 
+        /// that are valid for revokeAccess operations.
+        /// accessOptions.targetEntityName is a string represents the name of the target entity
+        /// accessOptions.targetEntityId is a string represents the GUID of the target entity
+        /// accessOptions.revokeeEntityName is a string represents the name of the revokee entity
+        /// accessOptions.revokeeEntityId is a string represents the GUID of the revokee entity
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+
+        var targetEntityName = accessOptions.targetEntityName;
+        var targetEntityId = accessOptions.targetEntityId;
+        var revokeeEntityName = accessOptions.revokeeEntityName;
+        var revokeeEntityId = accessOptions.revokeeEntityId;
+
+        var request = "<request i:type='b:RevokeAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
+	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Target</c:key>" +
+		                    "<c:value i:type='a:EntityReference'>" +
+		                      "<a:Id>" + targetEntityId + "</a:Id>" +
+		                      "<a:LogicalName>" + targetEntityName + "</a:LogicalName>" +
+		                      "<a:Name i:nil='true' />" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Revokee</c:key>" +
+                            "<c:value i:type='a:EntityReference'>" +
+                              "<a:Id>" + revokeeEntityId + "</a:Id>" +
+                              "<a:LogicalName>" + revokeeEntityName + "</a:LogicalName>" +
+                              "<a:Name i:nil='true' />" +
+                            "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                    "</a:Parameters>" +
+	                    "<a:RequestId i:nil='true' />" +
+	                    "<a:RequestName>RevokeAccess</a:RequestName>" +
+                    "</request>"
+
+        var async = !!callback;
+
+        return _doRequest(request, "Execute", async, function (resultXml) {
+
+            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
+            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+            if (!async)
+                return result;
+            else
+                callback(result);
+        });
+    };
+
+    var _retrievePrincipalAccess = function (accessOptions, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to do a retrievePrincipalAccess request. 
+        ///</summary>
+        ///<param name="accessOptions" type="Object">
+        /// A JavaScript Object with properties corresponding to the retrievePrincipalAccess Criteria 
+        /// that are valid for retrievePrincipalAccess operations.
+        /// accessOptions.targetEntityName is a string represents the name of the target entity
+        /// accessOptions.targetEntityId is a string represents the GUID of the target entity
+        /// accessOptions.principalEntityName is a string represents the name of the principal entity
+        /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+
+        var targetEntityName = accessOptions.targetEntityName;
+        var targetEntityId = accessOptions.targetEntityId;
+        var principalEntityName = accessOptions.principalEntityName;
+        var principalEntityId = accessOptions.principalEntityId;
+
+        var request = "<request i:type='b:RetrievePrincipalAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
+	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Target</c:key>" +
+		                    "<c:value i:type='a:EntityReference'>" +
+		                      "<a:Id>" + targetEntityId + "</a:Id>" +
+		                      "<a:LogicalName>" + targetEntityName + "</a:LogicalName>" +
+		                      "<a:Name i:nil='true' />" +
+		                    "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                      "<a:KeyValuePairOfstringanyType>" +
+		                    "<c:key>Principal</c:key>" +
+                            "<c:value i:type='a:EntityReference'>" +
+                              "<a:Id>" + principalEntityId + "</a:Id>" +
+                              "<a:LogicalName>" + principalEntityName + "</a:LogicalName>" +
+                              "<a:Name i:nil='true' />" +
+                            "</c:value>" +
+	                      "</a:KeyValuePairOfstringanyType>" +
+	                    "</a:Parameters>" +
+	                    "<a:RequestId i:nil='true' />" +
+	                    "<a:RequestName>RetrievePrincipalAccess</a:RequestName>" +
+                    "</request>"
+
+        var async = !!callback;
+
+        return _doRequest(request, "Execute", async, function (resultXml) {
+
+            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult/a:Results/a:KeyValuePairOfstringanyType/c:value");
+            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+            if (!async)
+                return result;
+            else
+                callback(result);
+        });
+    };
+
     //Toolkit's Return Static Methods
     return {
         BusinessEntity: _businessEntity,
@@ -1883,10 +2195,15 @@ XrmServiceToolkit.Soap = function () {
         SetState: _setState,
         Associate: _associate,
         Disassociate: _disassociate,
-        GetCurrentUserId : _getCurrentUserId,
-        GetCurrentUserBusinessUnitId : _getCurrentUserBusinessUnitId,
-        GetCurrentUserRoles : _getCurrentUserRoles,
-        IsCurrentUserRole : _isCurrentUserInRole
+        Assign: _assign,
+        RetrievePrincipalAccess: _retrievePrincipalAccess,
+        GrantAccess: _grantAccess,
+        ModifyAccess: _modifyAccess,
+        RevokeAccess: _revokeAccess,
+        GetCurrentUserId: _getCurrentUserId,
+        GetCurrentUserBusinessUnitId: _getCurrentUserBusinessUnitId,
+        GetCurrentUserRoles: _getCurrentUserRoles,
+        IsCurrentUserRole: _isCurrentUserInRole
     };
 
 } ();

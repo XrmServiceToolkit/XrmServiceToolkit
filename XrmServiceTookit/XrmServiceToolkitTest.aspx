@@ -497,6 +497,71 @@
 
         });
 
+        test("Test XrmServiceToolkit.Soap.Assign() method to assign a CRM record (contact) to a user", function () {
+
+            var assignResponse = XrmServiceToolkit.Soap.Assign("contact", contactId, "systemuser", currentUserId);
+            ok(assignResponse == "Assign", "The contact can be assigned to the current user. ");
+
+        });
+
+        test("Test XrmServiceToolkit.Soap.RetrievePrincipalAccess() method to retrieve a user access to a CRM record (contact)", function () {
+
+            var accessOptions = {
+                targetEntityName: "contact",
+                targetEntityId: contactId,
+                principalEntityName: "systemuser",
+                principalEntityId: currentUserId
+            };
+
+            var retrieveAccessResponse = XrmServiceToolkit.Soap.RetrievePrincipalAccess(accessOptions);
+            ok(retrieveAccessResponse != "", "The current user should have the access " + retrieveAccessResponse);
+
+        });
+
+        test("Test XrmServiceToolkit.Soap.GrantAccess() method to grant a user access to a CRM record (contact)", function () {
+
+            var accessOptions = {
+                targetEntityName: "contact",
+                targetEntityId: contactId,
+                principalEntityName: "systemuser",
+                principalEntityId: currentUserId,
+                accessRights: ["ReadAccess", "WriteAccess"]
+            };
+
+            var grantAccessResponse = XrmServiceToolkit.Soap.GrantAccess(accessOptions);
+            ok(grantAccessResponse == "GrantAccess", "The current user should have the listed access to the contact");
+
+        });
+
+        test("Test XrmServiceToolkit.Soap.ModifyAccess() method to modify a user access to a CRM record (contact)", function () {
+
+            var accessOptions = {
+                targetEntityName: "contact",
+                targetEntityId: contactId,
+                principalEntityName: "systemuser",
+                principalEntityId: currentUserId,
+                accessRights: ["ReadAccess", "WriteAccess"]
+            };
+
+            var modifyAccessResponse = XrmServiceToolkit.Soap.ModifyAccess(accessOptions);
+            ok(modifyAccessResponse == "ModifyAccess", "The current user should have the listed modified access to the contact");
+
+        });
+
+        test("Test XrmServiceToolkit.Soap.RevokeAccess() method to revoke a user access to a CRM record (contact)", function () {
+
+            var accessOptions = {
+                targetEntityName: "contact",
+                targetEntityId: contactId,
+                revokeeEntityName: "systemuser",
+                revokeeEntityId: currentUserId
+            };
+
+            var revokeAccessResponse = XrmServiceToolkit.Soap.RevokeAccess(accessOptions);
+            ok(revokeAccessResponse == "RevokeAccess", "The current user should have the access to the contact revoked");
+
+        });
+
         test("Test XrmServiceToolkit.Soap.Delete() method to delete a CRM record (contact)", function () {
 
             var deleteResponse = XrmServiceToolkit.Soap.Delete("contact", contactId);
