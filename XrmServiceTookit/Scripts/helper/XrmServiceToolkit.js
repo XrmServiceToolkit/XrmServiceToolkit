@@ -1021,6 +1021,11 @@ XrmServiceToolkit.Soap = function () {
         this.type = 'EntityReference';
     };
 
+    var _xrmEntityCollection = function (items) {
+        this.value = items;
+        this.type = 'EntityCollection';
+    };
+
     var _xrmOptionSetValue = function (iValue, sFormattedValue) {
         this.value = iValue;
         this.formattedValue = sFormattedValue;
@@ -1071,6 +1076,47 @@ XrmServiceToolkit.Soap = function () {
                             var encodedValue = _encodeValue(value);
                             xml.push('<b:value i:type="a:OptionSetValue">');
                             xml.push('<a:Value>', encodedValue, '</a:Value>', '</b:value>');
+                            break;
+
+                        case "EntityCollection":
+                            xml.push('<b:value i:type="a:EntityCollection">');
+                            xml.push('<a:Entities>');
+                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            var collections = _isArray(value) ? value : [value];
+
+                            for (var i = 0; i < collections.length; i++) {
+                                var item = collections[i];
+                                var _id = (item.hasOwnProperty("id")) ? item["id"] : item;
+                                var encodedId = _encodeValue(_id);
+                                var _logicalName = (item.hasOwnProperty("logicalName")) ? item["logicalName"] : item;
+                                var encodedLogicalName = _encodeValue(_logicalName);
+
+                                xml.push('<a:Entity>');
+                                xml.push('<a:Attributes>');
+                                xml.push('<a:KeyValuePairOfstringanyType>');
+                                xml.push('<b:key>partyid</b:key>');
+                                xml.push('<b:value i:type="a:EntityReference">');
+                                xml.push('<a:Id>', encodedId, '</a:Id>');
+                                xml.push('<a:LogicalName>', encodedLogicalName, '</a:LogicalName>');
+                                xml.push('<a:Name i:nil="true" />');
+                                xml.push('</b:value>');
+                                xml.push('</a:KeyValuePairOfstringanyType>');
+                                xml.push('</a:Attributes>');
+                                xml.push('<a:EntityState i:nil="true" />');
+                                xml.push('<a:FormattedValues />');
+                                xml.push('<a:Id>00000000-0000-0000-0000-000000000000</a:Id>');
+                                xml.push('<a:LogicalName>activityparty</a:LogicalName>');
+                                xml.push('<a:RelatedEntities />');
+                                xml.push('</a:Entity>');
+                            }
+                            xml.push('</a:Entities>');
+                            xml.push('<a:EntityName i:nil="true" />');
+                            xml.push('<a:MinActiveRowVersion i:nil="true" />');
+                            xml.push('<a:MoreRecords>false</a:MoreRecords>');
+                            xml.push('<a:PagingCookie i:nil="true" />');
+                            xml.push('<a:TotalRecordCount>0</a:TotalRecordCount>');
+                            xml.push('<a:TotalRecordCountLimitExceeded>false</a:TotalRecordCountLimitExceeded>');
+                            xml.push('</b:value>');
                             break;
 
                         case "EntityReference":
@@ -1165,6 +1211,28 @@ XrmServiceToolkit.Soap = function () {
                                     entRef.id = attr.childNodes[k].childNodes[1].childNodes[0].text;
                                     entRef.logicalName = attr.childNodes[k].childNodes[1].childNodes[1].text;
                                     entRef.name = attr.childNodes[k].childNodes[1].childNodes[2].text;
+                                    obj[sKey] = entRef;
+                                    break;
+
+                                case "a:EntityCollection":
+                                    var entRef = new _xrmEntityCollection();
+                                    entRef.type = sType.replace('a:', '');
+
+                                    //get all party items....
+                                    var items = [];
+                                    for (var y = 0; y < attr.childNodes[k].childNodes[1].childNodes[0].childNodes.length; y++) {
+                                        var itemNodes = attr.childNodes[k].childNodes[1].childNodes[0].childNodes[y].childNodes[0].childNodes;
+                                        for (var z = 0; z < itemNodes.length; z++) {
+                                            if (itemNodes[z].childNodes[0].text == "partyid") {
+                                                var itemRef = new _xrmEntityReference();
+                                                itemRef.id = itemNodes[z].childNodes[1].childNodes[0].text;
+                                                itemRef.logicalName = itemNodes[z].childNodes[1].childNodes[1].text;
+                                                itemRef.name = itemNodes[z].childNodes[1].childNodes[2].text;
+                                                items[y] = itemRef;
+                                            }
+                                        }
+                                    }
+                                    entRef.value = items;
                                     obj[sKey] = entRef;
                                     break;
 

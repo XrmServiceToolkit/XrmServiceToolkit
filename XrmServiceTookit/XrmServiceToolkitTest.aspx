@@ -15,6 +15,7 @@
     var birthDate = new Date(1955, 2, 20);
     var currentUserId, whoamiUserId;
     var accountId;
+    var emailId;
 
     //Test Rest and Soap Functions
     try {
@@ -479,7 +480,7 @@
 
         test("Test XrmServiceToolkit.Soap.Associate() method to associate records through an 1:N relationship", function () {
 
-            var account = new XrmServiceToolkit.Soap.BusinessEntity("account",accountId);
+            var account = new XrmServiceToolkit.Soap.BusinessEntity("account", accountId);
             var relatedAccounts = new Array();
             relatedAccounts[0] = account;
             var response = XrmServiceToolkit.Soap.Associate("account_primary_contact", "contact", contactId, "account", relatedAccounts);
@@ -560,6 +561,60 @@
             var revokeAccessResponse = XrmServiceToolkit.Soap.RevokeAccess(accessOptions);
             ok(revokeAccessResponse == "RevokeAccess", "The current user should have the access to the contact revoked");
 
+        });
+
+        test("Test XrmServiceToolkit.Soap.Create() method to create a email activity (email)", function () {
+
+            var createEmail = new XrmServiceToolkit.Soap.BusinessEntity("email");
+            createEmail.attributes["subject"] = "Test Email subject";
+            createEmail.attributes["description"] = "This email was created by the XrmServiceToolkit.Soap.Create() sample.";
+
+            var from = [
+                { id: whoamiUserId, logicalName: "systemuser", type: "EntityReference" }
+            ];
+
+            createEmail.attributes["from"] = { value: from, type: "EntityCollection" };
+
+            var to = [
+                { id: accountId, logicalName: "account", type: "EntityReference" },
+                { id: contactId, logicalName: "contact", type: "EntityReference" }
+            ];
+
+            createEmail.attributes["to"] = { value: to, type: "EntityCollection" };
+
+            var cc = [
+                { id: accountId, logicalName: "account", type: "EntityReference" },
+                { id: contactId, logicalName: "contact", type: "EntityReference" }
+            ];
+
+            createEmail.attributes["cc"] = { value: cc, type: "EntityCollection" };
+
+            var bcc = [
+                { id: accountId, logicalName: "account", type: "EntityReference" },
+                { id: contactId, logicalName: "contact", type: "EntityReference" }
+            ];
+
+            createEmail.attributes["bcc"] = { value: bcc, type: "EntityCollection" };
+
+            createEmail.attributes["directioncode"] = true;
+
+            emailId = XrmServiceToolkit.Soap.Create(createEmail);
+
+            ok(guidExpr.test(emailId), "Creating an email should returned the new record's ID in GUID format. ");
+        });
+
+        test("Test XrmServiceToolkit.Soap.Retrieve() method to retrieve a CRM record (email)", function () {
+
+            var cols = ["subject", "description", "from", "to", "cc", "bcc", "directioncode"];
+            var retrievedEmail = XrmServiceToolkit.Soap.Retrieve("email", emailId, cols);
+
+            equals(retrievedEmail.attributes['subject'].value, "Test Email subject", "Subject matches");
+            equals(retrievedEmail.attributes['description'].value, "This email was created by the XrmServiceToolkit.Soap.Create() sample.", "Description Matches");
+            equals(retrievedEmail.attributes['from'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equals(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection"); ;
+            equals(retrievedEmail.attributes['cc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equals(retrievedEmail.attributes['bcc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equals(retrievedEmail.attributes['directioncode'].type, "boolean", "CRM boolean type should be boolean");
         });
 
         test("Test XrmServiceToolkit.Soap.Delete() method to delete a CRM record (contact)", function () {
