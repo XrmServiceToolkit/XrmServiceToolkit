@@ -1,11 +1,11 @@
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
   <title>Xrm Service Toolkit Test</title>
   <link rel="stylesheet" href="Scripts/qunit/qunit.css" type="text/css" media="screen" />
   <script src="Scripts/helper/PageData.js" type="text/javascript"></script>
   <script src="Scripts/helper/XrmPageTemplate.js" type="text/javascript"></script>
+  <script type="text/javascript" src="Scripts/helper/json2.js"></script>    
+  <script type="text/javascript" src="Scripts/helper/jquery.js"></script>
   <script type="text/javascript" src="Scripts/qunit/qunit.js"></script>
   <script type="text/javascript" src="Scripts/helper/XrmServiceToolkit.js"></script>
   <script type="text/javascript">
@@ -21,6 +21,8 @@
     try {
 
         module("[Rest Functions]");
+
+        jQuery.support.cors = true;
 
         test("Test XrmServiceToolkit.Rest.Create() method to create a new record", function () {
 
@@ -95,7 +97,8 @@
                 null, null,
                 function (result) {
                     var Id = result.AccountId;
-                    equals(Id, accountId, "Retrieve() method should return the same account ID as Create() result. ");
+                    equal(Id, accountId, "Retrieve() method should return the same account ID as Create() result. ");
+        
                 },
                 function (error) {
                     equal(true, false, error.message);
@@ -120,7 +123,7 @@
                 account,
                 "AccountSet",
                 function () {
-                    equals(true, true, "The record should have been updated.");
+                    equal(true, true, "The record should have been updated.");
                 },
                 function (error) {
                     equal(true, false, error.message);
@@ -138,7 +141,7 @@
                 "AccountSet",
                 "account_primary_contact",
                 function () {
-                    equals(true, true, "The record should have been associated.");
+                    equal(true, true, "The record should have been associated.");
                 },
                 function (error) {
                     equal(true, false, error.message);
@@ -155,7 +158,7 @@
                     accountId,
                     "account_primary_contact",
                     function () {
-                        equals(true, true, "The record should have been disassociated.");
+                        equal(true, true, "The record should have been disassociated.");
                     },
                     function (error) {
                         equal(true, false, error.message);
@@ -170,7 +173,7 @@
                 accountId,
                 "AccountSet",
                 function () {
-                    equals(true, true, "The record should have been deleted.");
+                    equal(true, true, "The record should have been deleted.");
                 },
                 function (error) {
                     equal(true, false, error.message);
@@ -185,7 +188,7 @@
                 contactId,
                 "ContactSet",
                 function () {
-                    equals(true, true, "The record should have been deleted.");
+                    equal(true, true, "The record should have been deleted.");
                 },
                 function (error) {
                     equal(true, false, error.message);
@@ -230,7 +233,7 @@
         test("Test XrmServiceToolkit.Soap.GetCurrentUserId() method to get current user's ID", function () {
 
             currentUserId = XrmServiceToolkit.Soap.GetCurrentUserId();
-            equals(currentUserId, whoamiUserId, "getCurrentUserId() method should return the same user ID as WhoAmI request. ");
+            equal(currentUserId, whoamiUserId, "getCurrentUserId() method should return the same user ID as WhoAmI request. ");
 
         });
 
@@ -244,7 +247,7 @@
         test("Test XrmServiceToolkit.Soap.GetCurrentUserRoles() method to get all the system roles that the current user has been assigned to.", function () {
 
             var roles = XrmServiceToolkit.Soap.GetCurrentUserRoles();
-            ok(roles.constructor.toString().indexOf("Array") != -1, "getCurrentUserRoles() method should an array of user roles. ");
+            ok(roles.constructor.toString().indexOf("Array") != -1, "getCurrentUserRoles() method should an array of user roles:  " + roles);
 
         });
 
@@ -285,7 +288,7 @@
  
         test("Test XrmServiceToolkit.Soap.Update() method to update a CRM record (contact)", function () {
 
-            equals(contactId, contactId, "ContactID");
+            equal(contactId, contactId, "ContactID");
             var updateContact = new XrmServiceToolkit.Soap.BusinessEntity("contact", contactId);
             updateContact.attributes["firstname"] = "Diane";
             updateContact.attributes["lastname"] = "Lopez";
@@ -302,20 +305,20 @@
             var cols = ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"];
             var retrievedContact = XrmServiceToolkit.Soap.Retrieve("contact", contactId, cols);
 
-            equals(retrievedContact.attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
-            equals(retrievedContact.attributes['firstname'].value, "Diane", "firstname matches");
-            equals(retrievedContact.attributes['middlename'].value, "<&>", "middlename matches");
-            equals(retrievedContact.attributes['familystatuscode'].value, 2, "familystatuscode matches");
-            equals(retrievedContact.attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
+            equal(retrievedContact.attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
+            equal(retrievedContact.attributes['firstname'].value, "Diane", "firstname matches");
+            equal(retrievedContact.attributes['middlename'].value, "<&>", "middlename matches");
+            equal(retrievedContact.attributes['familystatuscode'].value, 2, "familystatuscode matches");
+            equal(retrievedContact.attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
             ok(CompareGuid(retrievedContact.attributes['ownerid'].id, currentUserId), "ownerid matches");
-            equals(retrievedContact.attributes['creditlimit'].value, 2, "creditlimit matches");
-            equals(retrievedContact.attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
-            equals(retrievedContact.attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
-            equals(retrievedContact.attributes['donotemail'].value, true, "donotemail matches");
-            equals(retrievedContact.attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
-            equals(retrievedContact.attributes['donotphone'].value, false, "donotphone matches");
-            equals(retrievedContact.attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
-            same(typeof retrievedContact.attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
+            equal(retrievedContact.attributes['creditlimit'].value, 2, "creditlimit matches");
+            equal(retrievedContact.attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
+            equal(retrievedContact.attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
+            equal(retrievedContact.attributes['donotemail'].value, true, "donotemail matches");
+            equal(retrievedContact.attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
+            equal(retrievedContact.attributes['donotphone'].value, false, "donotphone matches");
+            equal(retrievedContact.attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
+            deepEqual(typeof retrievedContact.attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
         });
 
         test("Test XrmServiceToolkit.Soap.RetrieveMultiple() method to retrieve a CRM record (contact)", function () {
@@ -368,21 +371,21 @@
 
             var retrievedContacts = XrmServiceToolkit.Soap.RetrieveMultiple(query);
 
-            equals(retrievedContacts.length, 1, "only last created contact should be found");
-            equals(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
-            equals(retrievedContacts[0].attributes['firstname'].value, "Diane", "firstname matches");
-            equals(retrievedContacts[0].attributes['middlename'].value, "<&>", "middlename matches");
-            equals(retrievedContacts[0].attributes['familystatuscode'].value, 2, "familystatuscode matches");
-            equals(retrievedContacts[0].attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
+            equal(retrievedContacts.length, 1, "only last created contact should be found");
+            equal(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
+            equal(retrievedContacts[0].attributes['firstname'].value, "Diane", "firstname matches");
+            equal(retrievedContacts[0].attributes['middlename'].value, "<&>", "middlename matches");
+            equal(retrievedContacts[0].attributes['familystatuscode'].value, 2, "familystatuscode matches");
+            equal(retrievedContacts[0].attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
             ok(CompareGuid(retrievedContacts[0].attributes['ownerid'].id, currentUserId), "ownerid matches");
-            equals(retrievedContacts[0].attributes['creditlimit'].value, 2, "creditlimit matches");
-            equals(retrievedContacts[0].attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
-            equals(retrievedContacts[0].attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
-            equals(retrievedContacts[0].attributes['donotemail'].value, true, "donotemail matches");
-            equals(retrievedContacts[0].attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
-            equals(retrievedContacts[0].attributes['donotphone'].value, false, "donotphone matches");
-            equals(retrievedContacts[0].attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
-            same(typeof retrievedContacts[0].attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
+            equal(retrievedContacts[0].attributes['creditlimit'].value, 2, "creditlimit matches");
+            equal(retrievedContacts[0].attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
+            equal(retrievedContacts[0].attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
+            equal(retrievedContacts[0].attributes['donotemail'].value, true, "donotemail matches");
+            equal(retrievedContacts[0].attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
+            equal(retrievedContacts[0].attributes['donotphone'].value, false, "donotphone matches");
+            equal(retrievedContacts[0].attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
+            deepEqual(typeof retrievedContacts[0].attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
 
         });
 
@@ -410,21 +413,21 @@
 
             var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
 
-            equals(retrievedContacts.length, 1, "only last created contact should be found");
-            equals(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
-            equals(retrievedContacts[0].attributes['firstname'].value, "Diane", "firstname matches");
-            equals(retrievedContacts[0].attributes['middlename'].value, "<&>", "middlename matches");
-            equals(retrievedContacts[0].attributes['familystatuscode'].value, 2, "familystatuscode matches");
-            equals(retrievedContacts[0].attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
+            equal(retrievedContacts.length, 1, "only last created contact should be found");
+            equal(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
+            equal(retrievedContacts[0].attributes['firstname'].value, "Diane", "firstname matches");
+            equal(retrievedContacts[0].attributes['middlename'].value, "<&>", "middlename matches");
+            equal(retrievedContacts[0].attributes['familystatuscode'].value, 2, "familystatuscode matches");
+            equal(retrievedContacts[0].attributes['familystatuscode'].type, "OptionSetValue", "CRM picklist's JavaScript type should be OptionSetValue");
             ok(CompareGuid(retrievedContacts[0].attributes['ownerid'].id, currentUserId), "ownerid matches");
-            equals(retrievedContacts[0].attributes['creditlimit'].value, 2, "creditlimit matches");
-            equals(retrievedContacts[0].attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
-            equals(retrievedContacts[0].attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
-            equals(retrievedContacts[0].attributes['donotemail'].value, true, "donotemail matches");
-            equals(retrievedContacts[0].attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
-            equals(retrievedContacts[0].attributes['donotphone'].value, false, "donotphone matches");
-            equals(retrievedContacts[0].attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
-            same(typeof retrievedContacts[0].attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
+            equal(retrievedContacts[0].attributes['creditlimit'].value, 2, "creditlimit matches");
+            equal(retrievedContacts[0].attributes['creditlimit'].type, "Money", "CRM number's JavaScript type should be Money");
+            equal(retrievedContacts[0].attributes['birthdate'].value.getTime(), birthDate.getTime(), "birthdate matches");
+            equal(retrievedContacts[0].attributes['donotemail'].value, true, "donotemail matches");
+            equal(retrievedContacts[0].attributes['donotemail'].type, "boolean", "CRM bit field's value type should be boolean (donotemail)");
+            equal(retrievedContacts[0].attributes['donotphone'].value, false, "donotphone matches");
+            equal(retrievedContacts[0].attributes['donotphone'].type, "boolean", "CRM bit's JavaScript type should be boolean (donotphone");
+            deepEqual(typeof retrievedContacts[0].attributes['donotpostalmail'], "undefined", "donotpostalmail matches");
 
         });
 
@@ -442,8 +445,8 @@
 
             var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
 
-            equals(fetchedContacts.length, 1, "only one record should be returned when doing aggregation.");
-            equals(fetchedContacts[0].attributes['count'].formattedValue, "1", "only one contact record would match the id.");
+            equal(fetchedContacts.length, 1, "only one record should be returned when doing aggregation.");
+            equal(fetchedContacts[0].attributes['count'].formattedValue, "1", "only one contact record would match the id.");
         });
 
         test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using one criterion", function () {
@@ -454,7 +457,7 @@
             };
             var fetchedContacts = XrmServiceToolkit.Soap.QueryByAttribute(queryOptions); // Retrieve all fields (BAD Practice) with no sorting
 
-            equals(fetchedContacts.length, 1, "only last created contact should be found");
+            equal(fetchedContacts.length, 1, "only last created contact should be found");
         });
 
         test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using two criteria", function () {
@@ -565,8 +568,9 @@
 
         test("Test XrmServiceToolkit.Soap.Create() method to create a email activity (email)", function () {
 
+            var today = new Date();
             var createEmail = new XrmServiceToolkit.Soap.BusinessEntity("email");
-            createEmail.attributes["subject"] = "Test Email subject";
+            createEmail.attributes["subject"] = "Test Email subject " + today.toString();
             createEmail.attributes["description"] = "This email was created by the XrmServiceToolkit.Soap.Create() sample.";
 
             var from = [
@@ -598,23 +602,25 @@
 
             createEmail.attributes["directioncode"] = true;
 
+            createEmail.attributes["regardingobjectid"] = { id: accountId, logicalName: "account", type: "EntityReference" };
+
             emailId = XrmServiceToolkit.Soap.Create(createEmail);
 
-            ok(guidExpr.test(emailId), "Creating an email should returned the new record's ID in GUID format. ");
+            ok(guidExpr.test(emailId), "Creating an email should returned the new record's ID in GUID format. " + emailId);
         });
 
         test("Test XrmServiceToolkit.Soap.Retrieve() method to retrieve a CRM record (email)", function () {
 
-            var cols = ["subject", "description", "from", "to", "cc", "bcc", "directioncode"];
+            var cols = ["subject", "description", "from", "to", "cc", "bcc", "directioncode", "regardingobjectid"];
             var retrievedEmail = XrmServiceToolkit.Soap.Retrieve("email", emailId, cols);
 
-            equals(retrievedEmail.attributes['subject'].value, "Test Email subject", "Subject matches");
-            equals(retrievedEmail.attributes['description'].value, "This email was created by the XrmServiceToolkit.Soap.Create() sample.", "Description Matches");
-            equals(retrievedEmail.attributes['from'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
-            equals(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection"); ;
-            equals(retrievedEmail.attributes['cc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
-            equals(retrievedEmail.attributes['bcc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
-            equals(retrievedEmail.attributes['directioncode'].type, "boolean", "CRM boolean type should be boolean");
+            equal(retrievedEmail.attributes['subject'].type, "string", "Subject matches");
+            equal(retrievedEmail.attributes['description'].value, "This email was created by the XrmServiceToolkit.Soap.Create() sample.", "Description Matches");
+            equal(retrievedEmail.attributes['from'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equal(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection"); ;
+            equal(retrievedEmail.attributes['cc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equal(retrievedEmail.attributes['bcc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+            equal(retrievedEmail.attributes['directioncode'].type, "boolean", "CRM boolean type should be boolean");
         });
 
         test("Test XrmServiceToolkit.Soap.Delete() method to delete a CRM record (contact)", function () {

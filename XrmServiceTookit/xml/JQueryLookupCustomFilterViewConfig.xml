@@ -1,0 +1,34 @@
+﻿<CustomFilterView>
+  <!-- The entity where the lookup field. Add other entity tags for other entities -->
+  <entity name="account">
+    <!-- Use the template to add filter view for other fields -->
+    <targetField id="new_primarycontactid" viewentity="contact" viewname="Filtered Lookup View">
+      <dynamic>
+        <!-- this section defines the fields for which their values will be used to replace the correspondent fetchnote -->
+        <!-- define all the fields if you need to use the values to build the correct fetch XML -->
+        <field name="new_originatedcountry" operator="contains" fetchnote="fnCountry"></field>
+      </dynamic>
+      <!-- using advanced find to get the fetchXml -->
+      <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+        <entity name="contact">
+          <attribute name="fullname" />
+          <attribute name="telephone1" />
+          <attribute name="contactid" />
+          <order attribute="fullname" descending="false" />
+          <filter type="and">
+            <condition attribute="new_country" operator="eq" value="fnCountry" />
+            <condition attribute="statuscode" operator="eq" value="1" />
+          </filter>
+        </entity>
+      </fetch>
+      <!-- this is the grid for the view -->
+      <grid name="resultset" object="1" jump="contactid" select="1" icon="1" preview="1">
+        <row name="result" id="contactid">
+          <cell name="fullname" width="200" />
+          <cell name="new_country" width="200" />
+          <cell name="telephone1" width="200" />
+        </row>
+      </grid>
+    </targetField>
+  </entity>
+</CustomFilterView>

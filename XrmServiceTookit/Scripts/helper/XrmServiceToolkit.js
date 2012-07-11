@@ -1,7 +1,11 @@
-﻿/**
+﻿/// <reference path="XrmPageTemplate.js" />
+/// <reference path="json2.js" />
+/// <reference path="jquery.js" />
+
+/**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @version : 1.1
+* @current version : 1.3
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -10,15 +14,37 @@
 *   The Soap functions were inspired by Daniel Cai && Jamie Miley && Paul Way && Customer Effective.
 *   Additional thanks to all contributors of MSCRM and i have learned a lot from you all.
 * Date: February, 2012
-
+*
+* Special Thanks:
+*   JetBrains ReSharper Open License
+* Date: July, 2012
+*
 * Whats new:
-*   Version: 1.1 
+**********************************************************************************************************
+*   Version: 1.1
 *   Date: April, 2012
+*       Dependency: JSON2
 *       New Function - XrmServiceToolkit.Soap.Assign
 *       New Function - XrmServiceToolkit.Soap.GrantAccess
 *       New Function - XrmServiceToolkit.Soap.ModifyAccess
 *       New Function - XrmServiceToolkit.Soap.GrantAccess
 *       New Function - XrmServiceToolkit.Soap.RetrievePrincipalAccess
+**********************************************************************************************************
+*   Version: 1.2
+*   Date: April, 2012
+*       Dependency: JSON2
+*       New Fix - Fix soaps functions to create/update/retrieve activities with Party List fields.
+**********************************************************************************************************
+*   Version: 1.3
+*   Date: July, 2012
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       New Feature: cross browser support. jQuery Integration.
+*       New Extension: A new category of functions to extend some functions:
+*          1. JQueryXrmDependentOptionSet: Create Configurable Dependent Option Set to utilize CRM 2011 web resource.
+*          2. JQueryXrmFieldTooltip: Create configurable tooltip for fields on CRM 2011 form
+*          3. JQueryXrmCustomFilterView: Create configurable ability to add custom filter view to crm 2011 lookup field on the form
+*          4. JQueryXrmFormatNotesControl: Format the notes control to allow insert, allow edit
+**********************************************************************************************************
 */
 
 XrmServiceToolkit = function () {
@@ -26,12 +52,12 @@ XrmServiceToolkit = function () {
     /// XrmServiceToolkit.Common for common funcitons.
     /// XrmServiceToolkit.Rest for all REST endpoints funcitons.
     /// XrmServiceToolkit.Soap for all Soap funtions.
+    /// XrmServiceToolkit.Extension for all Extension funtions.
     /// </summary>
 };
 
 XrmServiceToolkit.Common = function () {
-
-    var _guidsAreEqual = function (guid1, guid2) {
+    var guidsAreEqual = function (guid1, guid2) {
         /// <summary>
         /// Check if two guids are equal
         /// </summary>
@@ -42,8 +68,7 @@ XrmServiceToolkit.Common = function () {
         /// A string represents a guid
         /// </param>
         /// <returns type="boolean" />
-        var isEqual = false;
-
+        var isEqual;
         if (guid1 == null || guid2 == null) {
             isEqual = false;
         }
@@ -54,7 +79,7 @@ XrmServiceToolkit.Common = function () {
         return isEqual;
     };
 
-    var _enableField = function (fieldName) {
+    var enableField = function (fieldName) {
         /// <summary>
         /// Enable a field by the name
         /// </summary>
@@ -65,7 +90,7 @@ XrmServiceToolkit.Common = function () {
         Xrm.Page.getControl(fieldName).setDisabled(false);
     };
 
-    var _disableField = function (fieldName) {
+    var disableField = function (fieldName) {
         /// <summary>
         /// Disable a field by the name
         /// </summary>
@@ -76,7 +101,7 @@ XrmServiceToolkit.Common = function () {
         Xrm.Page.getControl(fieldName).setDisabled(true);
     };
 
-    var _showField = function (fieldName) {
+    var showField = function (fieldName) {
         /// <summary>
         /// Show a field by the name
         /// </summary>
@@ -87,7 +112,7 @@ XrmServiceToolkit.Common = function () {
         Xrm.Page.getControl(fieldName).setVisible(true);
     };
 
-    var _hideField = function (fieldName) {
+    var hideField = function (fieldName) {
         /// <summary>
         /// Hide a field by the name
         /// </summary>
@@ -98,7 +123,7 @@ XrmServiceToolkit.Common = function () {
         Xrm.Page.getControl(fieldName).setVisible(false);
     };
 
-    var _updateRequirementLevel = function (fieldName, levelName) {
+    var updateRequirementLevel = function (fieldName, levelName) {
         /// <summary>
         /// Updates the requirement level of a field
         /// </summary>
@@ -106,13 +131,13 @@ XrmServiceToolkit.Common = function () {
         /// Name of the field
         /// </param>
         /// <param name="levelName" type="string">
-        /// Name of the requirement level. [None, Recommended, Required] (Case Sensitive)
+        /// Name of the requirement level. [none, recommended, required] (Case Sensitive)
         /// </param>
         /// <returns type="void" />
         Xrm.Page.getAttribute(fieldName).setRequiredLevel(levelName);
     };
 
-    var _showError = function (error) {
+    var showError = function (error) {
         /// <summary>
         /// Alert the error message if occoured
         /// </summary>
@@ -123,7 +148,7 @@ XrmServiceToolkit.Common = function () {
         alert(error.message);
     };
 
-    var _getObjectTypeCode = function (entityName) {
+    var getObjectTypeCode = function (entityName) {
         /// <summary>
         /// Gets the EntityTypeCode / ObjectTypeCode of a entity
         /// </summary>
@@ -131,18 +156,23 @@ XrmServiceToolkit.Common = function () {
         /// Name of entity to return object type code of
         /// </param>
         /// <returns type="int" />
-        var lookupService = new RemoteCommand("LookupService", "RetrieveTypeCode");
-        lookupService.SetParameter("entityName", entityName);
-        var result = lookupService.Execute();
+        try {
+            var lookupService = new window.RemoteCommand("LookupService", "RetrieveTypeCode");
+            lookupService.SetParameter("entityName", entityName);
+            var result = lookupService.Execute();
 
-        if (result.Success && typeof result.ReturnValue == "number") {
-            return result.ReturnValue;
-        } else {
+            if (result.Success && typeof result.ReturnValue == "number") {
+                return result.ReturnValue;
+            } else {
+                return null;
+            }
+        } catch (e) {
+            showError(e.message);
             return null;
         }
     };
 
-    var _addNotification = function (message, level) {
+    var addNotification = function (message, level) {
         /// <summary>
         /// Add a notification bar message with CRM 2011 style
         /// </summary>
@@ -153,21 +183,27 @@ XrmServiceToolkit.Common = function () {
         /// The warning level of the message: [1 critial, 2 information, 3 warning]
         /// </param>
         /// <returns type="void" />
-        var notificationsArea = document.getElementById('crmNotifications');
+
+        if (typeof jQuery == 'undefined') {
+            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+            return;
+        }
+
+        var notificationsArea = $("#crmNotifications");
         if (notificationsArea == null) {
             alert('div not found'); return;
         }
         if (level == 1) {
-            //critical  
+            //critical
             notificationsArea.AddNotification('mep1', 1, 'source', message);
         }
 
         if (level == 2) {
-            //Info  
+            //Info
             notificationsArea.AddNotification('mep3', 3, 'source', message);
         }
         if (level == 3) {
-            //Warning  
+            //Warning
             notificationsArea.AddNotification('mep2', 2, 'source', message);
         }
         if (message == "") {
@@ -175,7 +211,7 @@ XrmServiceToolkit.Common = function () {
         }
     };
 
-    var _calculateDaysBetween = function (datetime1, datetime2) {
+    var calculateDaysBetween = function (datetime1, datetime2) {
         /// <summary>
         /// Calculate the days between two dates
         /// </summary>
@@ -188,109 +224,149 @@ XrmServiceToolkit.Common = function () {
         /// <returns type="int" />
 
         // The number of milliseconds in one day
-        var ONE_DAY = 1000 * 60 * 60 * 24;
+        var oneDay = 1000 * 60 * 60 * 24;
 
         // Convert both dates to milliseconds
-        var date1_ms = datetime1.getTime();
-        var date2_ms = datetime2.getTime();
+        var date1Ms = datetime1.getTime();
+        var date2Ms = datetime2.getTime();
 
         // Calculate the difference in milliseconds
-        var difference_ms = Math.abs(date1_ms - date2_ms)
-
-        // Convert back to days and return
-        return Math.round(difference_ms / ONE_DAY)
+        var differenceMs = Math.abs(date1Ms - date2Ms); // Convert back to days and return
+        return Math.round(differenceMs / oneDay);
     };
+
+    var disableAllControlsInTab = function (tabControlNo) {
+        var tabControl = Xrm.Page.ui.tabs.get(tabControlNo);
+        if (tabControl != null) {
+            Xrm.Page.ui.controls.forEach(
+             function (control) {
+                 if (control.getParent().getParent() == tabControl && control.getControlType() != "subgrid") {
+                     control.setDisabled(true);
+                 }
+             });
+        }
+    };
+
+     var disableAllControlsInSection = function (sectionLabel) {
+         var tabs = Xrm.Page.ui.tabs;
+         for (var i = 0; i < tabs.getLength(); i++) {
+             var tab = tabs.get(i);
+             var sections = tab.sections;
+             for (var j = 0; j < sections.getLength(); j++) {
+                 var section = sections.get(j);
+                 if (section.getLabel().toLowerCase() == sectionLabel.toLowerCase()) {
+                    Xrm.Page.ui.controls.forEach(
+                        function (control) {
+                            if (control.getParent().getLabel() == sectionLabel && control.getControlType() != "subgrid") {
+                                control.setDisabled(true);
+                        }
+                    });
+                    break;
+                 }
+             }
+         }
+     };
 
     // Toolkit's public static members
     return {
-        EnableField: _enableField,
-        DisableField: _disableField,
-        ShowField: _showField,
-        HideField: _hideField,
-        UpdateRequiredLevel: _updateRequirementLevel,
-        GetObjectTypeCode: _getObjectTypeCode,
-        CalculateDaysBetween: _calculateDaysBetween,
-        AddNotification: _addNotification,
-        ShowError: _showError,
-        GuidsAreEqual : _guidsAreEqual
+        EnableField: enableField,
+        DisableField: disableField,
+        ShowField: showField,
+        HideField: hideField,
+        UpdateRequiredLevel: updateRequirementLevel,
+        GetObjectTypeCode: getObjectTypeCode,
+        CalculateDaysBetween: calculateDaysBetween,
+        AddNotification: addNotification,
+        ShowError: showError,
+        GuidsAreEqual: guidsAreEqual,
+        DisableAllControlsInTab: disableAllControlsInTab,
+        DisableAllControlsInSection: disableAllControlsInSection
     };
-
 } ();
 
 XrmServiceToolkit.Rest = function () {
     // Private members
-    var _htmlEncode = function (s) {
+    var htmlEncode = function (s) {
         if (s == null || s == "") return s;
-        for (var count = 0, buffer = "", htmlEncode = "", cnt = 0; cnt < s.length; cnt++) {
+        for (var count = 0, buffer = "", hEncode = "", cnt = 0; cnt < s.length; cnt++) {
             var c = s.charCodeAt(cnt);
             if (c > 96 && c < 123 || c > 64 && c < 91 || c == 32 || c > 47 && c < 58 || c == 46 || c == 44 || c == 45 || c == 95)
                 buffer += String.fromCharCode(c);
             else buffer += "&#" + c + ";";
             if (++count == 500) {
-                htmlEncode += buffer; buffer = ""; count = 0
+                hEncode += buffer; buffer = ""; count = 0;
             }
         }
-        if (buffer.length) htmlEncode += buffer;
-        return htmlEncode
+        if (buffer.length) hEncode += buffer;
+        return hEncode;
     };
 
     var innerSurrogateAmpersandWorkaround = function (s) {
-        for (var buffer = "", cnt = 0; cnt < s.length; cnt++) {
-            var c0 = s.charCodeAt(cnt);
+        var buffer = '';
+        var c0;
+        for (var cnt = 0; cnt < s.length; cnt++) {
+            c0 = s.charCodeAt(cnt);
             if (c0 >= 55296 && c0 <= 57343)
                 if (cnt + 1 < s.length) {
                     var c1 = s.charCodeAt(cnt + 1);
                     if (c1 >= 56320 && c1 <= 57343) {
-                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++
+                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++;
                     }
                     else
-                        buffer += String.fromCharCode(c0)
+                        buffer += String.fromCharCode(c0);
                 }
                 else buffer += String.fromCharCode(c0);
-            else buffer += String.fromCharCode(c0)
+            else buffer += String.fromCharCode(c0);
         }
         s = buffer;
         buffer = "";
-        for (var cnt = 0; cnt < s.length; cnt++) {
-            var c0 = s.charCodeAt(cnt);
+        for (cnt = 0; cnt < s.length; cnt++) {
+            c0 = s.charCodeAt(cnt);
             if (c0 >= 55296 && c0 <= 57343)
                 buffer += String.fromCharCode(65533);
-            else buffer += String.fromCharCode(c0)
+            else buffer += String.fromCharCode(c0);
         }
         s = buffer;
-        s = _htmlEncode(s);
+        s = htmlEncode(s);
         s = s.replace(/CRMEntityReferenceOpen/g, "&#x");
         s = s.replace(/CRMEntityReferenceClose/g, ";");
-        return s
+        return s;
     };
 
-    var CrmXmlEncode = function (s) {
+    // ReSharper disable UnusedLocals
+    var crmXmlEncode = function (s) {
+        // ReSharper restore UnusedLocals
+        // ReSharper disable UsageOfPossiblyUnassignedValue
         if ("undefined" == typeof s || "unknown" == typeof s || null == s) return s;
+        // ReSharper restore UsageOfPossiblyUnassignedValue
         else if (typeof s != "string") s = s.toString();
-        return innerSurrogateAmpersandWorkaround(s)
+        return innerSurrogateAmpersandWorkaround(s);
     };
 
-    var CrmXmlDecode = function (s) {
+    // ReSharper disable UnusedLocals
+    var crmXmlDecode = function (s) {
+        // ReSharper restore UnusedLocals
         if (typeof s != "string") s = s.toString();
         return s;
     };
 
-    var _context = function () {
+    var context = function () {
         ///<summary>
         /// Private function to the context object.
         ///</summary>
         ///<returns>Context</returns>
-        if (typeof GetGlobalContext != "undefined") {
-            return GetGlobalContext();
+        var oContext = null;
+        if (typeof window.GetGlobalContext != "undefined") {
+            oContext = window.GetGlobalContext();
         }
         else {
             if (typeof Xrm != "undefined") {
                 if (typeof Xrm != "undefined") {
-                    return Xrm.Page.context;
+                    oContext = Xrm.Page.context;
                 }
                 else {
                     if (typeof window.parent.Xrm != "undefined") {
-                        return window.parent.Xrm.Page.context;
+                        oContext = window.parent.Xrm.Page.context;
                     }
                 }
             }
@@ -298,29 +374,30 @@ XrmServiceToolkit.Rest = function () {
                 throw new Error("Context is not available.");
             }
         }
+        return oContext;
     };
 
-    var _getServerUrl = function () {
+    var getServerUrl = function () {
         ///<summary>
         /// Private function to return the server URL from the context
         ///</summary>
         ///<returns>String</returns>
-        var serverUrl = _context().getServerUrl();
+        var serverUrl = context().getServerUrl();
         if (serverUrl.match(/\/$/)) {
             serverUrl = serverUrl.substring(0, serverUrl.length - 1);
         }
         return serverUrl;
     };
 
-    var _ODataPath = function () {
+    var oDataPath = function () {
         ///<summary>
         /// Private function to return the path to the REST endpoint.
         ///</summary>
         ///<returns>String</returns>
-        return _getServerUrl() + "/XRMServices/2011/OrganizationData.svc/";
+        return getServerUrl() + "/XRMServices/2011/OrganizationData.svc/";
     };
 
-    var _errorHandler = function (req) {
+    var errorHandler = function (req) {
         ///<summary>
         /// Private function return an Error object to the errorCallback
         ///</summary>
@@ -334,7 +411,7 @@ XrmServiceToolkit.Rest = function () {
         JSON.parse(req.responseText).error.message.value);
     };
 
-    var _dateReviver = function (key, value) {
+    var dateReviver = function (key, value) {
         ///<summary>
         /// Private function to convert matching string values to Date objects.
         ///</summary>
@@ -354,7 +431,7 @@ XrmServiceToolkit.Rest = function () {
         return value;
     };
 
-    var _parameterCheck = function (parameter, message) {
+    var parameterCheck = function (parameter, message) {
         ///<summary>
         /// Private function used to check whether required parameters are null or undefined
         ///</summary>
@@ -369,7 +446,7 @@ XrmServiceToolkit.Rest = function () {
         }
     };
 
-    var _stringParameterCheck = function (parameter, message) {
+    var stringParameterCheck = function (parameter, message) {
         ///<summary>
         /// Private function used to check whether required parameters are null or undefined
         ///</summary>
@@ -384,7 +461,7 @@ XrmServiceToolkit.Rest = function () {
         }
     };
 
-    var _callbackParameterCheck = function (callbackParameter, message) {
+    var callbackParameterCheck = function (callbackParameter, message) {
         ///<summary>
         /// Private function used to check whether required callback parameters are functions
         ///</summary>
@@ -399,7 +476,7 @@ XrmServiceToolkit.Rest = function () {
         }
     };
 
-    var _booleanParameterCheck = function (parameter, message) {
+    var booleanParameterCheck = function (parameter, message) {
         ///<summary>
         /// Private function used to check whether required parameters are null or undefined
         ///</summary>
@@ -414,94 +491,120 @@ XrmServiceToolkit.Rest = function () {
         }
     };
 
-    var _createRecord = function (object, type, successCallback, errorCallback, async) {
+    var getXhr = function () {
+        ///<summary>
+        /// Get an instance of XMLHttpRequest for all browers
+        ///</summary>
+        if (XMLHttpRequest) {
+            // Chrome, Firefox, IE7+, Opera, Safari
+            // ReSharper disable InconsistentNaming
+            return new XMLHttpRequest();
+            // ReSharper restore InconsistentNaming
+        }
+        // IE6
+        try {
+            // The latest stable version. It has the best security, performance,
+            // reliability, and W3C conformance. Ships with Vista, and available
+            // with other OS's via downloads and updates.
+            return new ActiveXObject('MSXML2.XMLHTTP.6.0');
+        } catch (e) {
+            try {
+                // The fallback.
+                return new ActiveXObject('MSXML2.XMLHTTP.3.0');
+            } catch (e) {
+                alert('This browser is not AJAX enabled.');
+                return null;
+            }
+        }
+    };
+
+    var createRecord = function (object, type, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to create a new record.
         ///</summary>
         ///<param name="object" type="Object">
         /// A JavaScript object with properties corresponding to the Schema name of
         /// entity attributes that are valid for create operations.
-        _parameterCheck(object, "XrmServiceToolkit.REST.createRecord requires the object parameter.");
         ///</param>
+        parameterCheck(object, "XrmServiceToolkit.REST.createRecord requires the object parameter.");
         ///<param name="type" type="string">
         /// A String representing the name of the entity
         ///</param>
-        _stringParameterCheck(type, "XrmServiceToolkit.REST.createRecord requires the type parameter is a string.");
+        stringParameterCheck(type, "XrmServiceToolkit.REST.createRecord requires the type parameter is a string.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// This function can accept the returned record as a parameter.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.createRecord requires the successCallback is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.createRecord requires the successCallback is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.createRecord requires the errorCallback is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.createRecord requires the errorCallback is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.createRecord requires the async is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.createRecord requires the async is a boolean.");
 
-        var req = new XMLHttpRequest();
-        req.open("POST", _ODataPath() + type, async);
+        var req = getXhr();
+        req.open("POST", oDataPath() + type, async);
         req.setRequestHeader("Accept", "application/json");
         req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         req.onreadystatechange = function () {
             if (this.readyState == 4 /* complete */) {
                 if (this.status == 201) {
-                    successCallback(JSON.parse(this.responseText, _dateReviver).d);
+                    successCallback(JSON.parse(this.responseText, dateReviver).d);
                 }
                 else {
-                    errorCallback(_errorHandler(this));
+                    errorCallback(errorHandler(this));
                 }
             }
         };
         req.send(JSON.stringify(object));
     };
 
-    var _retrieveRecord = function (id, type, select, expand, successCallback, errorCallback, async) {
+    var retrieveRecord = function (id, type, select, expand, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to retrieve a record.
         ///</summary>
         ///<param name="id" type="String">
         /// A String representing the GUID value for the record to retrieve.
         ///</param>
-        _stringParameterCheck(id, "XrmServiceToolkit.REST.retrieveRecord requires the id parameter is a string.");
-        ///</param>
+        stringParameterCheck(id, "XrmServiceToolkit.REST.retrieveRecord requires the id parameter is a string.");
         ///<param name="type" type="string">
         /// A String representing the name of the entity
         ///</param>
-        _stringParameterCheck(type, "XrmServiceToolkit.REST.retrieveRecord requires the type parameter is a string.");
+        stringParameterCheck(type, "XrmServiceToolkit.REST.retrieveRecord requires the type parameter is a string.");
         ///<param name="select" type="String">
         /// A String representing the $select OData System Query Option to control which
         /// attributes will be returned. This is a comma separated list of Attribute names that are valid for retrieve.
         /// If null all properties for the record will be returned
         ///</param>
         if (select != null)
-            _stringParameterCheck(select, "XrmServiceToolkit.REST.retrieveRecord requires the select parameter is a string.");
+            stringParameterCheck(select, "XrmServiceToolkit.REST.retrieveRecord requires the select parameter is a string.");
         ///<param name="expand" type="String">
         /// A String representing the $expand OData System Query Option value to control which
         /// related records are also returned. This is a comma separated list of of up to 6 entity relationship names
         /// If null no expanded related records will be returned.
         ///</param>
         if (expand != null)
-            _stringParameterCheck(expand, "XrmServiceToolkit.REST.retrieveRecord requires the expand parameter is a string.");
+            stringParameterCheck(expand, "XrmServiceToolkit.REST.retrieveRecord requires the expand parameter is a string.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// This function must accept the returned record as a parameter.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.retrieveRecord requires the successCallback parameter is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.retrieveRecord requires the successCallback parameter is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.retrieveRecord requires the errorCallback parameter is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.retrieveRecord requires the errorCallback parameter is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.retrieveRecord requires the async parameter is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.retrieveRecord requires the async parameter is a boolean.");
 
         var systemQueryOptions = "";
 
@@ -519,60 +622,59 @@ XrmServiceToolkit.Rest = function () {
             }
         }
 
-
-        var req = new XMLHttpRequest();
-        req.open("GET", _ODataPath() + type + "(guid'" + id + "')" + systemQueryOptions, async);
+        var req = getXhr();
+        req.open("GET", oDataPath() + type + "(guid'" + id + "')" + systemQueryOptions, async);
         req.setRequestHeader("Accept", "application/json");
         req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         req.onreadystatechange = function () {
             if (this.readyState == 4 /* complete */) {
                 if (this.status == 200) {
-                    successCallback(JSON.parse(this.responseText, _dateReviver).d);
+                    successCallback(JSON.parse(this.responseText, dateReviver).d);
                 }
                 else {
-                    errorCallback(_errorHandler(this));
+                    errorCallback(errorHandler(this));
                 }
             }
         };
         req.send();
     };
 
-    var _updateRecord = function (id, object, type, successCallback, errorCallback, async) {
+    var updateRecord = function (id, object, type, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to update a record.
         ///</summary>
         ///<param name="id" type="String">
         /// A String representing the GUID value for the record to update.
         ///</param>
-        _stringParameterCheck(id, "XrmServiceToolkit.REST.updateRecord requires the id parameter.");
+        stringParameterCheck(id, "XrmServiceToolkit.REST.updateRecord requires the id parameter.");
         ///<param name="object" type="Object">
         /// A JavaScript object with properties corresponding to the Schema name of
         /// entity attributes that are valid for create operations.
-        _parameterCheck(object, "XrmServiceToolkit.REST.updateRecord requires the object parameter.");
         ///</param>
+        parameterCheck(object, "XrmServiceToolkit.REST.updateRecord requires the object parameter.");
         ///<param name="type" type="string">
         /// A String representing the name of the entity
         ///</param>
-        _stringParameterCheck(type, "XrmServiceToolkit.REST.updateRecord requires the type parameter.");
+        stringParameterCheck(type, "XrmServiceToolkit.REST.updateRecord requires the type parameter.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// Nothing will be returned to this function.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.updateRecord requires the successCallback is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.updateRecord requires the successCallback is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.updateRecord requires the errorCallback is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.updateRecord requires the errorCallback is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.updateRecord requires the async parameter is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.updateRecord requires the async parameter is a boolean.");
 
-        var req = new XMLHttpRequest();
+        var req = getXhr();
 
-        req.open("POST", _ODataPath() + type + "(guid'" + id + "')", async);
+        req.open("POST", oDataPath() + type + "(guid'" + id + "')", async);
         req.setRequestHeader("Accept", "application/json");
         req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         req.setRequestHeader("X-HTTP-Method", "MERGE");
@@ -583,44 +685,43 @@ XrmServiceToolkit.Rest = function () {
                     successCallback();
                 }
                 else {
-                    errorCallback(_errorHandler(this));
+                    errorCallback(errorHandler(this));
                 }
             }
         };
         req.send(JSON.stringify(object));
     };
 
-    var _deleteRecord = function (id, type, successCallback, errorCallback, async) {
+    var deleteRecord = function (id, type, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to delete a record.
         ///</summary>
         ///<param name="id" type="String">
         /// A String representing the GUID value for the record to delete.
         ///</param>
-        _stringParameterCheck(id, "XrmServiceToolkit.REST.deleteRecord requires the id parameter.");
-        ///</param>
+        stringParameterCheck(id, "XrmServiceToolkit.REST.deleteRecord requires the id parameter.");
         ///<param name="type" type="string">
         /// A String representing the name of the entity
         ///</param>
-        _stringParameterCheck(type, "XrmServiceToolkit.REST.deleteRecord requires the type parameter.");
+        stringParameterCheck(type, "XrmServiceToolkit.REST.deleteRecord requires the type parameter.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// Nothing will be returned to this function.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.deleteRecord requires the successCallback is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.deleteRecord requires the successCallback is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.deleteRecord requires the errorCallback is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.deleteRecord requires the errorCallback is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.deleteRecord requires the async parameter is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.deleteRecord requires the async parameter is a boolean.");
 
-        var req = new XMLHttpRequest();
-        req.open("POST", _ODataPath() + type + "(guid'" + id + "')", async);
+        var req = getXhr();
+        req.open("POST", oDataPath() + type + "(guid'" + id + "')", async);
         req.setRequestHeader("Accept", "application/json");
         req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         req.setRequestHeader("X-HTTP-Method", "DELETE");
@@ -630,14 +731,14 @@ XrmServiceToolkit.Rest = function () {
                     successCallback();
                 }
                 else {
-                    errorCallback(_errorHandler(this));
+                    errorCallback(errorHandler(this));
                 }
             }
         };
         req.send();
     };
 
-    var _retrieveMultipleRecords = function (type, options, successCallback, errorCallback, OnComplete, async) {
+    var retrieveMultipleRecords = function (type, options, successCallback, errorCallback, onComplete, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to retrieve records.
         ///</summary>
@@ -645,36 +746,36 @@ XrmServiceToolkit.Rest = function () {
         /// The Schema Name of the Entity type record to retrieve.
         /// For an Account record, use "Account"
         ///</param>
-        _stringParameterCheck(type, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the type parameter is a string.");
+        stringParameterCheck(type, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the type parameter is a string.");
         ///<param name="options" type="String">
         /// A String representing the OData System Query Options to control the data returned
         ///</param>
         if (options != null)
-            _stringParameterCheck(options, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the options parameter is a string.");
+            stringParameterCheck(options, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the options parameter is a string.");
         ///<param name="successCallback" type="Function">
         /// The function that will be passed through and be called for each page of records returned.
         /// Each page is 50 records. If you expect that more than one page of records will be returned,
         /// this function should loop through the results and push the records into an array outside of the function.
         /// Use the OnComplete event handler to know when all the records have been processed.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the successCallback parameter is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the successCallback parameter is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the errorCallback parameter is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the errorCallback parameter is a function.");
         ///<param name="OnComplete" type="Function">
         /// The function that will be called when all the requested records have been returned.
         /// No parameters are passed to this function.
         /// </param>
-        _callbackParameterCheck(OnComplete, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the OnComplete parameter is a function.");
+        callbackParameterCheck(onComplete, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the OnComplete parameter is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the async parameter is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.retrieveMultipleRecords requires the async parameter is a boolean.");
 
-        var optionsString;
+        var optionsString = '';
         if (options != null) {
             if (options.charAt(0) != "?") {
                 optionsString = "?" + options;
@@ -684,34 +785,34 @@ XrmServiceToolkit.Rest = function () {
             }
         }
 
-        var req = new XMLHttpRequest();
-        req.open("GET", _ODataPath() + type + optionsString, async);
+        var req = getXhr();
+        req.open("GET", oDataPath() + type + optionsString, async);
         req.setRequestHeader("Accept", "application/json");
         req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         req.onreadystatechange = function () {
             if (this.readyState == 4 /* complete */) {
                 if (this.status == 200) {
-                    var returned = JSON.parse(this.responseText, _dateReviver).d;
+                    var returned = JSON.parse(this.responseText, dateReviver).d;
                     successCallback(returned.results);
                     if (returned.__next != null) {
-                        var queryOptions = returned.__next.substring((_ODataPath() + type).length);
-                        _retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, OnComplete);
+                        var queryOptions = returned.__next.substring((oDataPath() + type).length);
+                        retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, onComplete);
                     }
                     else {
-                        OnComplete();
+                        onComplete();
                     }
                 }
                 else {
-                    errorCallback(_errorHandler(this));
+                    errorCallback(errorHandler(this));
                 }
             }
         };
         req.send();
     };
 
-    var _performRequest = function (settings) {
-        _parameterCheck(settings, "The value passed to the performRequest function settings parameter is null or undefined.");
-        var request = new XMLHttpRequest();
+    var performRequest = function (settings) {
+        parameterCheck(settings, "The value passed to the performRequest function settings parameter is null or undefined.");
+        var request = getXhr();
         request.open(settings.type, settings.url, settings.async);
         request.setRequestHeader("Accept", "application/json");
         if (settings.action != null) {
@@ -729,10 +830,10 @@ XrmServiceToolkit.Rest = function () {
                 else {
                     // Failure
                     if (settings.error) {
-                        settings.error(_errorHandler(this));
+                        settings.error(errorHandler(this));
                     }
                     else {
-                        _errorHandler(this);
+                        errorHandler(this);
                     }
                 }
             }
@@ -744,55 +845,55 @@ XrmServiceToolkit.Rest = function () {
         else {
             request.send(settings.data);
         }
-    }
+    };
 
-    var _associateRecord = function (entityid1, odataSetName1, entityid2, odataSetName2, relationship, successCallback, errorCallback, async) {
+    var associateRecord = function (entityid1, odataSetName1, entityid2, odataSetName2, relationship, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to associate a record.
         ///</summary>
         ///<param name="entityid1" type="string">
         /// A String representing the GUID value for the record to associate.
         ///</param>
-        _parameterCheck(entityid1, "XrmServiceToolkit.REST.associateRecord requires the entityid1 parameter.");
+        parameterCheck(entityid1, "XrmServiceToolkit.REST.associateRecord requires the entityid1 parameter.");
         ///<param name="odataSetName1" type="string">
         /// A String representing the odataset name for entityid1
         ///</param>
-        _parameterCheck(odataSetName1, "XrmServiceToolkit.REST.associateRecord requires the odataSetName1 parameter.");
+        parameterCheck(odataSetName1, "XrmServiceToolkit.REST.associateRecord requires the odataSetName1 parameter.");
         ///<param name="entityid2" type="string">
         /// A String representing the GUID value for the record to be associated.
         ///</param>
-        _parameterCheck(entityid2, "XrmServiceToolkit.REST.associateRecord requires the entityid2 parameter.");
+        parameterCheck(entityid2, "XrmServiceToolkit.REST.associateRecord requires the entityid2 parameter.");
         ///<param name="odataSetName2" type="string">
         /// A String representing the odataset name for entityid2
         ///</param>
-        _parameterCheck(odataSetName2, "XrmServiceToolkit.REST.associateRecord requires the odataSetName2 parameter.");
+        parameterCheck(odataSetName2, "XrmServiceToolkit.REST.associateRecord requires the odataSetName2 parameter.");
         ///<param name="relationship" type="string">
         /// A String representing the name of the relationship for association
         ///</param>
-        _parameterCheck(relationship, "XrmServiceToolkit.REST.associateRecord requires the relationship parameter.");
+        parameterCheck(relationship, "XrmServiceToolkit.REST.associateRecord requires the relationship parameter.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// Nothing will be returned to this function.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.associateRecord requires the successCallback is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.associateRecord requires the successCallback is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.associateRecord requires the errorCallback is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.associateRecord requires the errorCallback is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.associateRecord requires the async parameter is a boolean");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.associateRecord requires the async parameter is a boolean");
 
         var entity2 = {};
-        entity2.uri = _ODataPath() + "/" + odataSetName2 + "(guid'" + entityid2 + "')";
+        entity2.uri = oDataPath() + "/" + odataSetName2 + "(guid'" + entityid2 + "')";
         var jsonEntity = window.JSON.stringify(entity2);
 
-        _performRequest({
+        performRequest({
             type: "POST",
-            url: _ODataPath() + "/" + odataSetName1 + "(guid'" + entityid1 + "')/$links/" + relationship,
+            url: oDataPath() + "/" + odataSetName1 + "(guid'" + entityid1 + "')/$links/" + relationship,
             data: jsonEntity,
             success: successCallback,
             error: errorCallback,
@@ -800,44 +901,44 @@ XrmServiceToolkit.Rest = function () {
         });
     };
 
-    var _disassociateRecord = function (entityid1, odataSetName, entityid2, relationship, successCallback, errorCallback, async) {
+    var disassociateRecord = function (entityid1, odataSetName, entityid2, relationship, successCallback, errorCallback, async) {
         ///<summary>
         /// Sends synchronous/asynchronous request to disassociate a record.
         ///</summary>
         ///<param name="entityid1" type="string">
         /// A String representing the GUID value for the record to disassociate.
         ///</param>
-        _parameterCheck(entityid1, "XrmServiceToolkit.REST.disassociateRecord requires the entityid1 parameter.");
+        parameterCheck(entityid1, "XrmServiceToolkit.REST.disassociateRecord requires the entityid1 parameter.");
         ///<param name="odataSetName" type="string">
         /// A String representing the odataset name for entityid1
         ///</param>
-        _parameterCheck(odataSetName, "XrmServiceToolkit.REST.disassociateRecord requires the odataSetName parameter.");
+        parameterCheck(odataSetName, "XrmServiceToolkit.REST.disassociateRecord requires the odataSetName parameter.");
         ///<param name="entityid2" type="string">
         /// A String representing the GUID value for the record to be disassociated.
         ///</param>
-        _parameterCheck(entityid2, "XrmServiceToolkit.REST.disassociateRecord requires the entityid2 parameter.");
+        parameterCheck(entityid2, "XrmServiceToolkit.REST.disassociateRecord requires the entityid2 parameter.");
         ///<param name="relationship" type="string">
         /// A String representing the name of the relationship for disassociation
         ///</param>
-        _parameterCheck(relationship, "XrmServiceToolkit.REST.disassociateRecord requires the relationship parameter.");
+        parameterCheck(relationship, "XrmServiceToolkit.REST.disassociateRecord requires the relationship parameter.");
         ///<param name="successCallback" type="Function">
-        /// The function that will be passed through and be called by a successful response. 
+        /// The function that will be passed through and be called by a successful response.
         /// Nothing will be returned to this function.
         /// </param>
-        _callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.disassociateRecord requires the successCallback is a function.");
+        callbackParameterCheck(successCallback, "XrmServiceToolkit.REST.disassociateRecord requires the successCallback is a function.");
         ///<param name="errorCallback" type="Function">
-        /// The function that will be passed through and be called by a failed response. 
+        /// The function that will be passed through and be called by a failed response.
         /// This function must accept an Error object as a parameter.
         /// </param>
-        _callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.disassociateRecord requires the errorCallback is a function.");
+        callbackParameterCheck(errorCallback, "XrmServiceToolkit.REST.disassociateRecord requires the errorCallback is a function.");
         ///<param name="async" type="Boolean">
         /// A Boolean representing if the method should run asynchronously or synchronously
         /// true means asynchronously. false means synchronously
         /// </param>
-        _booleanParameterCheck(async, "XrmServiceToolkit.REST.disassociateRecord requires the async parameter is a boolean.");
+        booleanParameterCheck(async, "XrmServiceToolkit.REST.disassociateRecord requires the async parameter is a boolean.");
 
-        var url = _ODataPath() + "/" + odataSetName + "(guid'" + entityid1 + "')/$links/" + relationship + "(guid'" + entityid2 + "')";
-        _performRequest({
+        var url = oDataPath() + "/" + odataSetName + "(guid'" + entityid1 + "')/$links/" + relationship + "(guid'" + entityid2 + "')";
+        performRequest({
             url: url,
             type: "POST",
             action: "DELETE",
@@ -849,75 +950,78 @@ XrmServiceToolkit.Rest = function () {
 
     // Toolkit's public static members
     return {
-        Create: _createRecord,
-        Retrieve: _retrieveRecord,
-        Update: _updateRecord,
-        Delete: _deleteRecord,
-        RetrieveMultiple: _retrieveMultipleRecords,
-        Associate: _associateRecord,
-        Disassociate: _disassociateRecord
+        Create: createRecord,
+        Retrieve: retrieveRecord,
+        Update: updateRecord,
+        Delete: deleteRecord,
+        RetrieveMultiple: retrieveMultipleRecords,
+        Associate: associateRecord,
+        Disassociate: disassociateRecord
     };
 } ();
 
 XrmServiceToolkit.Soap = function () {
-
-    var _htmlEncode = function (s) {
+    var htmlEncode = function (s) {
         if (s == null || s == "") return s;
-        for (var count = 0, buffer = "", htmlEncode = "", cnt = 0; cnt < s.length; cnt++) {
+        for (var count = 0, buffer = "", hEncode = "", cnt = 0; cnt < s.length; cnt++) {
             var c = s.charCodeAt(cnt);
             if (c > 96 && c < 123 || c > 64 && c < 91 || c == 32 || c > 47 && c < 58 || c == 46 || c == 44 || c == 45 || c == 95)
                 buffer += String.fromCharCode(c);
             else buffer += "&#" + c + ";";
             if (++count == 500) {
-                htmlEncode += buffer; buffer = ""; count = 0
+                hEncode += buffer; buffer = ""; count = 0;
             }
         }
-        if (buffer.length) htmlEncode += buffer;
-        return htmlEncode
+        if (buffer.length) hEncode += buffer;
+        return hEncode;
     };
 
     var innerSurrogateAmpersandWorkaround = function (s) {
-        for (var buffer = "", cnt = 0; cnt < s.length; cnt++) {
-            var c0 = s.charCodeAt(cnt);
+        var buffer = '';
+        var c0;
+        for (var cnt = 0; cnt < s.length; cnt++) {
+            c0 = s.charCodeAt(cnt);
             if (c0 >= 55296 && c0 <= 57343)
                 if (cnt + 1 < s.length) {
                     var c1 = s.charCodeAt(cnt + 1);
                     if (c1 >= 56320 && c1 <= 57343) {
-                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++
+                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++;
                     }
                     else
-                        buffer += String.fromCharCode(c0)
+                        buffer += String.fromCharCode(c0);
                 }
                 else buffer += String.fromCharCode(c0);
-            else buffer += String.fromCharCode(c0)
+            else buffer += String.fromCharCode(c0);
         }
         s = buffer;
         buffer = "";
-        for (var cnt = 0; cnt < s.length; cnt++) {
-            var c0 = s.charCodeAt(cnt);
+        for (cnt = 0; cnt < s.length; cnt++) {
+            c0 = s.charCodeAt(cnt);
             if (c0 >= 55296 && c0 <= 57343)
                 buffer += String.fromCharCode(65533);
-            else buffer += String.fromCharCode(c0)
+            else buffer += String.fromCharCode(c0);
         }
         s = buffer;
-        s = _htmlEncode(s);
+        s = htmlEncode(s);
         s = s.replace(/CRMEntityReferenceOpen/g, "&#x");
         s = s.replace(/CRMEntityReferenceClose/g, ";");
-        return s
+        return s;
     };
 
-    var CrmXmlEncode = function (s) {
+    var crmXmlEncode = function (s) {
+        // ReSharper disable UsageOfPossiblyUnassignedValue
         if ("undefined" == typeof s || "unknown" == typeof s || null == s) return s;
+        // ReSharper restore UsageOfPossiblyUnassignedValue
         else if (typeof s != "string") s = s.toString();
-        return innerSurrogateAmpersandWorkaround(s)
+        return innerSurrogateAmpersandWorkaround(s);
     };
 
-    var CrmXmlDecode = function (s) {
+    var crmXmlDecode = function (s) {
         if (typeof s != "string") s = s.toString();
         return s;
     };
 
-    var _padNumber = function (s, len) {
+    var padNumber = function (s, len) {
         len = len || 2;
 
         s = '' + s;
@@ -927,37 +1031,38 @@ XrmServiceToolkit.Soap = function () {
         return s;
     };
 
-    var _encodeDate = function (dateTime) {
+    var encodeDate = function (dateTime) {
         return dateTime.getFullYear() + "-" +
-               _padNumber(dateTime.getMonth() + 1) + "-" +
-               _padNumber(dateTime.getDate()) + "T" +
-               _padNumber(dateTime.getHours()) + ":" +
-               _padNumber(dateTime.getMinutes()) + ":" +
-               _padNumber(dateTime.getSeconds());
+               padNumber(dateTime.getMonth() + 1) + "-" +
+               padNumber(dateTime.getDate()) + "T" +
+               padNumber(dateTime.getHours()) + ":" +
+               padNumber(dateTime.getMinutes()) + ":" +
+               padNumber(dateTime.getSeconds());
     };
 
-    var _encodeValue = function (value) {
+    var encodeValue = function (value) {
         return (typeof value === "object" && value.getTime)
-               ? _encodeDate(value)
-               : ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlEncode(value) : CrmXmlEncode(value));
-    }
+               ? encodeDate(value)
+               : ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(value) : crmXmlEncode(value));
+    };
 
-    var _context = function () {
+    var context = function () {
         ///<summary>
         /// Private function to the context object.
         ///</summary>
         ///<returns>Context</returns>
-        if (typeof GetGlobalContext != "undefined") {
-            return GetGlobalContext();
+        var oContext = null;
+        if (typeof window.GetGlobalContext != "undefined") {
+            oContext = window.GetGlobalContext();
         }
         else {
             if (typeof Xrm != "undefined") {
                 if (typeof Xrm != "undefined") {
-                    return Xrm.Page.context;
+                    oContext = Xrm.Page.context;
                 }
                 else {
                     if (typeof window.parent.Xrm != "undefined") {
-                        return window.parent.Xrm.Page.context;
+                        oContext = window.parent.Xrm.Page.context;
                     }
                 }
             }
@@ -965,31 +1070,32 @@ XrmServiceToolkit.Soap = function () {
                 throw new Error("Context is not available.");
             }
         }
+        return oContext;
     };
 
-    var _getServerUrl = function () {
+    var getServerUrl = function () {
         ///<summary>
         /// Private function to return the server URL from the context
         ///</summary>
         ///<returns>String</returns>
-        var serverUrl = _context().getServerUrl();
+        var serverUrl = context().getServerUrl();
         if (serverUrl.match(/\/$/)) {
             serverUrl = serverUrl.substring(0, serverUrl.length - 1);
         }
         return serverUrl;
     };
 
-    var _orgServicePath = function () {
+    var orgServicePath = function () {
         ///<summary>
         /// Private function to return the path to the organization service.
         ///</summary>
         ///<returns>String</returns>
-        return _getServerUrl() + "/XRMServices/2011/Organization.svc/web";
-        //TESTURL
-        //return "http://localhost:5555/XRMServices/2011/Organization.svc/web";
+        return getServerUrl() + "/XRMServices/2011/Organization.svc/web";
     };
 
-    var _dateReviver = function (key, value) {
+    // ReSharper disable UnusedLocals
+    var dateReviver = function (key, value) {
+        // ReSharper restore UnusedLocals
         ///<summary>
         /// Private function to convert matching string values to Date objects.
         ///</summary>
@@ -1009,50 +1115,78 @@ XrmServiceToolkit.Soap = function () {
         return value;
     };
 
-    var _xrmValue = function (sType, sValue) {
+    var xrmValue = function (sType, sValue) {
         this.type = sType;
         this.value = sValue;
     };
 
-    var _xrmEntityReference = function (gID, sLogicalName, sName) {
-        this.id = gID;
+    var xrmEntityReference = function (gId, sLogicalName, sName) {
+        this.id = gId;
         this.logicalName = sLogicalName;
         this.name = sName;
         this.type = 'EntityReference';
     };
 
-    var _xrmEntityCollection = function (items) {
+    var xrmEntityCollection = function (items) {
         this.value = items;
         this.type = 'EntityCollection';
     };
 
-    var _xrmOptionSetValue = function (iValue, sFormattedValue) {
+    var xrmOptionSetValue = function (iValue, sFormattedValue) {
         this.value = iValue;
         this.formattedValue = sFormattedValue;
         this.type = 'OptionSetValue';
     };
 
-    var _businessEntity = function (logicalName, id) {
+    var businessEntity = function (logicalName, id) {
         ///<summary>
         /// A object represents a business entity for CRM 2011.
         ///</summary>
         ///<param name="logicalName" type="String">
-        /// A String represents the name of the entity. 
+        /// A String represents the name of the entity.
         /// For example, "contact" means the business entity will be a contact entity
+        /// </param>
         ///<param name="id" type="String">
-        /// A String represents the id of the entity. If not passed, it will be autopopulated as a empty guid string    
+        /// A String represents the id of the entity. If not passed, it will be autopopulated as a empty guid string
+        /// </param>
         this.id = (!id) ? "00000000-0000-0000-0000-000000000000" : id;
         this.logicalName = logicalName;
         this.attributes = new Object();
     };
 
-    _businessEntity.prototype = {
+    var getXhr = function () {
+        ///<summary>
+        /// Get an instance of XMLHttpRequest for all browers
+        ///</summary>
+        if (XMLHttpRequest) {
+            // Chrome, Firefox, IE7+, Opera, Safari
+            // ReSharper disable InconsistentNaming
+            return new XMLHttpRequest();
+            // ReSharper restore InconsistentNaming
+        }
+        // IE6
+        try {
+            // The latest stable version. It has the best security, performance,
+            // reliability, and W3C conformance. Ships with Vista, and available
+            // with other OS's via downloads and updates.
+            return new ActiveXObject('MSXML2.XMLHTTP.6.0');
+        } catch (e) {
+            try {
+                // The fallback.
+                return new ActiveXObject('MSXML2.XMLHTTP.3.0');
+            } catch (e) {
+                alert('This browser is not AJAX enabled.');
+                return null;
+            }
+        }
+    };
+
+    businessEntity.prototype = {
         /**
         * Serialize a CRM Business Entity object to XML string in order to be passed to CRM Web Services.
         * @return {String} The serialized XML string of CRM entity.
         */
         serialize: function () {
-
             var xml = ['<entity xmlns:a="http://schemas.microsoft.com/xrm/2011/Contracts">'];
             xml.push('<a:Attributes xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic">');
 
@@ -1068,12 +1202,17 @@ XrmServiceToolkit.Soap = function () {
                 else {
                     var sType = (!attribute.type)
                             ? typeof attribute
-                            : ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlEncode(attribute.type) : CrmXmlEncode(attribute.type));
-
+                            : ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(attribute.type) : crmXmlEncode(attribute.type));
+                    var value;
+                    var encodedValue;
+                    var id;
+                    var encodedId;
+                    var logicalName;
+                    var encodedLogicalName;
                     switch (sType) {
                         case "OptionSetValue":
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var encodedValue = _encodeValue(value);
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            encodedValue = encodeValue(value);
                             xml.push('<b:value i:type="a:OptionSetValue">');
                             xml.push('<a:Value>', encodedValue, '</a:Value>', '</b:value>');
                             break;
@@ -1081,16 +1220,15 @@ XrmServiceToolkit.Soap = function () {
                         case "EntityCollection":
                             xml.push('<b:value i:type="a:EntityCollection">');
                             xml.push('<a:Entities>');
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var collections = _isArray(value) ? value : [value];
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            var collections = isArray(value) ? value : [value];
 
                             for (var i = 0; i < collections.length; i++) {
                                 var item = collections[i];
-                                var _id = (item.hasOwnProperty("id")) ? item["id"] : item;
-                                var encodedId = _encodeValue(_id);
-                                var _logicalName = (item.hasOwnProperty("logicalName")) ? item["logicalName"] : item;
-                                var encodedLogicalName = _encodeValue(_logicalName);
-
+                                id = (item.hasOwnProperty("id")) ? item["id"] : item;
+                                encodedId = encodeValue(id);
+                                logicalName = (item.hasOwnProperty("logicalName")) ? item["logicalName"] : item;
+                                encodedLogicalName = encodeValue(logicalName);
                                 xml.push('<a:Entity>');
                                 xml.push('<a:Attributes>');
                                 xml.push('<a:KeyValuePairOfstringanyType>');
@@ -1120,10 +1258,10 @@ XrmServiceToolkit.Soap = function () {
                             break;
 
                         case "EntityReference":
-                            var _id = (attribute.hasOwnProperty("id")) ? attribute["id"] : attribute;
-                            var encodedId = _encodeValue(_id);
-                            var _logicalName = (attribute.hasOwnProperty("logicalName")) ? attribute["logicalName"] : attribute;
-                            var encodedLogicalName = _encodeValue(_logicalName);
+                            id = (attribute.hasOwnProperty("id")) ? attribute["id"] : attribute;
+                            encodedId = encodeValue(id);
+                            logicalName = (attribute.hasOwnProperty("logicalName")) ? attribute["logicalName"] : attribute;
+                            encodedLogicalName = encodeValue(logicalName);
                             xml.push('<b:value i:type="a:EntityReference">');
                             xml.push('<a:Id>', encodedId, '</a:Id>');
                             xml.push('<a:LogicalName>', encodedLogicalName, '</a:LogicalName>');
@@ -1131,30 +1269,30 @@ XrmServiceToolkit.Soap = function () {
                             break;
 
                         case "Money":
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var encodedValue = _encodeValue(value);
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            encodedValue = encodeValue(value);
                             xml.push('<b:value i:type="a:Money">');
                             xml.push('<a:Value>', encodedValue, '</a:Value>', '</b:value>');
                             break;
 
                         case "guid":
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var encodedValue = _encodeValue(value);
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            encodedValue = encodeValue(value);
                             xml.push('<b:value i:type="c:guid" xmlns:c="http://schemas.microsoft.com/2003/10/Serialization/">');
                             xml.push(encodedValue, '</b:value>');
                             break;
 
                         case "number":
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var encodedValue = _encodeValue(value);
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            encodedValue = encodeValue(value);
                             var oType = (parseInt(encodedValue) == encodedValue) ? "c:int" : "c:decimal";
                             xml.push('<b:value i:type="', oType, '" xmlns:c="http://schemas.microsoft.com/2003/10/Serialization/">');
                             xml.push(encodedValue, '</b:value>');
                             break;
 
                         default:
-                            var value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var encodedValue = _encodeValue(value);
+                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                            encodedValue = encodeValue(value);
                             sType = (typeof value === "object" && value.getTime) ? "dateTime" : sType;
                             xml.push('<b:value i:type="c:', sType, '" xmlns:c="http://www.w3.org/2001/XMLSchema">', encodedValue, '</b:value>');
                             break;
@@ -1165,7 +1303,7 @@ XrmServiceToolkit.Soap = function () {
 
             xml.push('</a:Attributes><a:EntityState i:nil="true" />');
             xml.push('<a:FormattedValues xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />');
-            xml.push('<a:Id>', _encodeValue(this.id), '</a:Id>');
+            xml.push('<a:Id>', encodeValue(this.id), '</a:Id>');
             xml.push('<a:LogicalName>', this.logicalName, '</a:LogicalName>');
             xml.push('<a:RelatedEntities xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />');
             xml.push('</entity>');
@@ -1177,57 +1315,58 @@ XrmServiceToolkit.Soap = function () {
         * @param {object} resultNode The XML node returned from CRM Web Service's Fetch, Retrieve, RetrieveMultiple messages.
         */
         deserialize: function (resultNode) {
+            if (typeof jQuery == 'undefined') {
+                alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+                return;
+            }
+
             var obj = new Object();
-            var resultNodes = resultNode.childNodes;
+            var resultNodes = resultNode.children();
 
             for (var j = 0; j < resultNodes.length; j++) {
-                switch (resultNodes[j].baseName) {
-                    case "Attributes":
+                var k;
+                var sKey;
+                switch (resultNodes.eq(j).prop("nodeName")) {
+                    case "a:Attributes":
                         var attr = resultNodes[j];
-                        for (var k = 0; k < attr.childNodes.length; k++) {
-
+                        for (k = 0; k < $(attr).children().length; k++) {
                             // Establish the Key for the Attribute
-                            var sKey = attr.childNodes[k].firstChild.text;
-                            var sType = '';
+                            sKey = $(attr).children().eq(k).children(':first').text();
+                            var sType = $(attr).children().eq(k).children().eq(1).attr('i:type');
 
-                            // Determine the Type of Attribute value we should expect
-                            for (var l = 0; l < attr.childNodes[k].childNodes[1].attributes.length; l++) {
-                                if (attr.childNodes[k].childNodes[1].attributes[l].baseName == 'type') {
-                                    sType = attr.childNodes[k].childNodes[1].attributes[l].text;
-                                }
-                            }
-
+                            var entRef;
+                            var entCv;
                             switch (sType) {
                                 case "a:OptionSetValue":
-                                    var entOSV = new _xrmOptionSetValue();
-                                    entOSV.type = sType.replace('a:', '');
-                                    entOSV.value = parseInt(attr.childNodes[k].childNodes[1].text);
-                                    obj[sKey] = entOSV;
+                                    var entOsv = new xrmOptionSetValue();
+                                    entOsv.type = sType.replace('a:', '');
+                                    entOsv.value = parseInt($(attr).children().eq(k).children().eq(1).text());
+                                    obj[sKey] = entOsv;
                                     break;
 
                                 case "a:EntityReference":
-                                    var entRef = new _xrmEntityReference();
+                                    entRef = new xrmEntityReference();
                                     entRef.type = sType.replace('a:', '');
-                                    entRef.id = attr.childNodes[k].childNodes[1].childNodes[0].text;
-                                    entRef.logicalName = attr.childNodes[k].childNodes[1].childNodes[1].text;
-                                    entRef.name = attr.childNodes[k].childNodes[1].childNodes[2].text;
+                                    entRef.id = $(attr).children().eq(k).children().eq(1).children().eq(0).text();
+                                    entRef.logicalName = $(attr).children().eq(k).children().eq(1).children().eq(1).text();
+                                    entRef.name = $(attr).children().eq(k).children().eq(1).children().eq(2).text();
                                     obj[sKey] = entRef;
                                     break;
 
                                 case "a:EntityCollection":
-                                    var entRef = new _xrmEntityCollection();
+                                    entRef = new xrmEntityCollection();
                                     entRef.type = sType.replace('a:', '');
 
                                     //get all party items....
                                     var items = [];
-                                    for (var y = 0; y < attr.childNodes[k].childNodes[1].childNodes[0].childNodes.length; y++) {
-                                        var itemNodes = attr.childNodes[k].childNodes[1].childNodes[0].childNodes[y].childNodes[0].childNodes;
+                                    for (var y = 0; y < $(attr).children().eq(k).children().eq(1).children().eq(0).children().length; y++) {
+                                        var itemNodes = $(attr).children().eq(k).children().eq(1).children().eq(0).children().eq(y).children().eq(0).children();
                                         for (var z = 0; z < itemNodes.length; z++) {
-                                            if (itemNodes[z].childNodes[0].text == "partyid") {
-                                                var itemRef = new _xrmEntityReference();
-                                                itemRef.id = itemNodes[z].childNodes[1].childNodes[0].text;
-                                                itemRef.logicalName = itemNodes[z].childNodes[1].childNodes[1].text;
-                                                itemRef.name = itemNodes[z].childNodes[1].childNodes[2].text;
+                                            if (itemNodes.eq(z).children().eq(0).text() == "partyid") {
+                                                var itemRef = new xrmEntityReference();
+                                                itemRef.id = itemNodes.eq(z).children().eq(1).children().eq(0).text();
+                                                itemRef.logicalName = itemNodes.eq(z).children().eq(1).children().eq(1).text();
+                                                itemRef.name = itemNodes.eq(z).children().eq(1).children().eq(2).text();
                                                 items[y] = itemRef;
                                             }
                                         }
@@ -1237,52 +1376,55 @@ XrmServiceToolkit.Soap = function () {
                                     break;
 
                                 case "a:Money":
-                                    var entCV = new _xrmValue();
-                                    entCV.type = sType.replace('a:', '');
-                                    entCV.value = parseFloat(attr.childNodes[k].childNodes[1].text);
-                                    obj[sKey] = entCV;
+                                    entCv = new xrmValue();
+                                    entCv.type = sType.replace('a:', '');
+                                    entCv.value = parseFloat($(attr).children().eq(k).children().eq(1).text());
+                                    obj[sKey] = entCv;
                                     break;
 
                                 default:
-                                    var entCV = new _xrmValue();
-                                    entCV.type = sType.replace('c:', '').replace('a:', '');
-                                    if (entCV.type == "int") {
-                                        entCV.value = parseInt(attr.childNodes[k].childNodes[1].text);
+                                    entCv = new xrmValue();
+                                    entCv.type = sType.replace('c:', '').replace('a:', '');
+                                    if (entCv.type == "int") {
+                                        entCv.value = parseInt($(attr).children().eq(k).children().eq(1).text());
                                     }
-                                    else if (entCV.type == "decimal") {
-                                        entCV.value = parseFloat(attr.childNodes[k].childNodes[1].text);
+                                    else if (entCv.type == "decimal") {
+                                        entCv.value = parseFloat($(attr).children().eq(k).children().eq(1).text());
                                     }
-                                    else if (entCV.type == "dateTime") {
-                                        entCV.value = new Date(attr.childNodes[k].childNodes[1].text);
+                                    else if (entCv.type == "dateTime") {
+                                        entCv.value = Date.parse($(attr).children().eq(k).children().eq(1).text());
                                     }
-                                    else if (entCV.type == "boolean") {
-                                        entCV.value = (attr.childNodes[k].childNodes[1].text == 'false') ? false : true;
+                                    else if (entCv.type == "boolean") {
+                                        entCv.value = ($(attr).children().eq(k).children().eq(1).text() == 'false') ? false : true;
                                     }
                                     else {
-                                        entCV.value = attr.childNodes[k].childNodes[1].text;
+                                        entCv.value = $(attr).children().eq(k).children().eq(1).text();
                                     }
-                                    obj[sKey] = entCV;
+                                    obj[sKey] = entCv;
                                     break;
                             }
                         }
                         this.attributes = obj;
                         break;
 
-                    case "Id":
-                        this.id = resultNodes[j].text;
+                    case "a:Id":
+                        this.id = $(resultNodes).eq(j).text();
                         break;
 
-                    case "LogicalName":
-                        this.logicalName = resultNodes[j].text;
+                    case "a:LogicalName":
+                        this.logicalName = $(resultNodes).eq(j).text();
                         break;
 
-                    case "FormattedValues":
-                        var foVal = resultNodes[j];
+                    case "a:FormattedValues":
+                        var foVal = $(resultNodes).eq(j);
 
-                        for (var k = 0; k < foVal.childNodes.length; k++) {
+                        for (k = 0; k < foVal.children().length; k++) {
                             // Establish the Key, we are going to fill in the formatted value of the already found attribute
-                            var sKey = foVal.childNodes[k].firstChild.text;
-                            this.attributes[sKey].formattedValue = foVal.childNodes[k].childNodes[1].text;
+                            sKey = foVal.children().eq(k).children().eq(0).text();
+                            this.attributes[sKey].formattedValue = foVal.children().eq(k).children().eq(1).text();
+                            if (isNaN(this.attributes[sKey].value) && this.attributes[sKey].type == "dateTime") {
+                                this.attributes[sKey].value = new Date(this.attributes[sKey].formattedValue);
+                            }
                         }
                         break;
                 }
@@ -1290,7 +1432,54 @@ XrmServiceToolkit.Soap = function () {
         }
     };
 
-    var _doRequest = function (soapBody, requestType, async, internalCallback) {
+    var xmlParser = function (txt) {
+        ///<summary>
+        /// cross browser responseXml to return a XML object
+        ///</summary>
+        var xmlDoc = null;
+        try {
+            // code for Mozilla, Firefox, Opera, etc.
+            if (window.DOMParser) {
+                // ReSharper disable InconsistentNaming
+                var parser = new DOMParser();
+                // ReSharper restore InconsistentNaming
+                xmlDoc = parser.parseFromString(txt, "text/xml");
+            }
+            else // Internet Explorer
+            {
+                xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+                xmlDoc.async = false;
+                xmlDoc.loadXML(txt);
+            }
+        } catch (e) {
+            alert("Cannot convert the XML string to a cross-browser XML object.");
+        }
+
+        return xmlDoc;
+    };
+
+    var xmlToString = function (responseXml) {
+        var xmlString = '';
+        try {
+            if (responseXml != null) {
+                //IE
+                if (window.ActiveXObject) {
+                    xmlString = responseXml.xml;
+                }
+                // code for Mozilla, Firefox, Opera, etc.
+                else {
+                    // ReSharper disable InconsistentNaming
+                    xmlString = (new XMLSerializer()).serializeToString(responseXml[0]);
+                    // ReSharper restore InconsistentNaming
+                }
+            }
+        } catch (e) {
+            alert("Cannot convert the XML to a string.");
+        }
+        return xmlString;
+    };
+
+    var doRequest = function (soapBody, requestType, async, internalCallback) {
         async = async || false;
 
         // Wrap the Soap Body in a soap:Envelope.
@@ -1302,8 +1491,8 @@ XrmServiceToolkit.Soap = function () {
             "</soap:Envelope>"
         ].join("");
 
-        var req = new XMLHttpRequest();
-        req.open("POST", _orgServicePath(), async)
+        var req = getXhr();
+        req.open("POST", orgServicePath(), async);
         req.setRequestHeader("Accept", "application/xml, text/xml, */*");
         req.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
         req.setRequestHeader("SOAPAction", "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/" + requestType);
@@ -1314,7 +1503,7 @@ XrmServiceToolkit.Soap = function () {
             req.onreadystatechange = function () {
                 if (req.readyState == 4) { // "complete"
                     if (req.status == 200) { // "OK"
-                        internalCallback(_processResponse(req.responseXML, req.responseText));
+                        internalCallback(processResponse(req.responseXML, req.responseText));
                     }
                     else {
                         throw new Error("HTTP-Requests ERROR: " + req.statusText);
@@ -1323,12 +1512,17 @@ XrmServiceToolkit.Soap = function () {
             };
         }
         else {
-            var result = _processResponse(req.responseXML);
+            var result = processResponse(req.responseXML);
             return !!internalCallback ? internalCallback(result) : result;
         }
+        // ReSharper disable NotAllPathsReturnValue
     };
+    // ReSharper restore NotAllPathsReturnValue
 
-    var _processResponse = function (responseXml, responseText) {
+    var processResponse = function (responseXml, responseText) {
+        if (typeof jQuery == 'undefined') {
+            throw new Error('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+        }
 
         if (responseXml === null || responseXml.xml === null || responseXml.xml === "") {
             if (responseText !== null && responseText !== "")
@@ -1338,80 +1532,90 @@ XrmServiceToolkit.Soap = function () {
         }
 
         // Report the error if occurred
-        var error = responseXml.selectSingleNode("//error");
-        var faultString = responseXml.selectSingleNode("//faultstring");
+        var error = $(responseXml).children("error").text();
+        var faultString = $(responseXml).children("faultstring").text();
 
-        if (error !== null || faultString !== null) {
-            throw new Error(error !== null ? responseXml.selectSingleNode('//description').nodeTypedValue : faultString.text);
+        if (error != '' || faultString != '') {
+            throw new Error(error !== null ? $(responseXml).children('description').text() : faultString);
         }
 
         // Load responseXML and return as an XML object
-        var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-        xmlDoc.async = false;
-        xmlDoc.loadXML(responseXml.xml);
+        var xmlDoc = xmlParser(xmlToString(responseXml));
         return xmlDoc;
     };
 
-    var _create = function (businessEntity, callback) {
+    var sCreate = function (be, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to create a new record.
         ///</summary>
-        ///<param name="businessEntity" type="Object">
+        ///<param name="be" type="Object">
         /// A JavaScript object with properties corresponding to the Schema name of
         /// entity attributes that are valid for create operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
-        var request = businessEntity.serialize();
+        /// </param>
+        var request = be.serialize();
 
         var async = !!callback;
 
-        return _doRequest(request, "Create", async, function (resultXml) {
-            var response = resultXml.selectSingleNode("//CreateResponse/CreateResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Create", async, function (resultXml) {
+            var response = $(resultXml).find('CreateResult').eq(0);
+
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
 
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _update = function (businessEntity, callback) {
+    var sUpdate = function (be, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to update an existing record.
         ///</summary>
         ///<param name="businessEntity" type="Object">
         /// A JavaScript object with properties corresponding to the Schema name of
         /// entity attributes that are valid for update operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
-        var request = businessEntity.serialize();
+        /// </param>
+        var request = be.serialize();
 
         var async = !!callback;
 
-        return _doRequest(request, "Update", async, function (resultXml) {
-            var response = resultXml.selectSingleNode("//UpdateResponse");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Update", async, function (resultXml) {
+            var response = $(resultXml).children("#UpdateResponse").eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
 
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _delete = function (entityName, id, callback) {
+    var sDelete = function (entityName, id, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to delete a record.
         ///</summary>
         ///<param name="entityName" type="String">
         /// A JavaScript String corresponding to the Schema name of
         /// entity that is used for delete operations.
+        /// </param>
         ///<param name="id" type="String">
         /// A JavaScript String corresponding to the GUID of
         /// entity that is used for delete operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var request =
                 [
                     "<entityName>", entityName, "</entityName>",
@@ -1420,61 +1624,69 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(request, "Delete", async, function (resultXml) {
-            var response = resultXml.selectSingleNode("//DeleteResponse");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Delete", async, function (resultXml) {
+            var response = $(resultXml).children("#DeleteResponse").eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
 
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _execute = function (request, callback) {
+    var execute = function (request, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to execute a soap request.
         ///</summary>
         ///<param name="request" type="String">
         /// A JavaScript string corresponding to the soap request
         /// that are valid for execute operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
+        return doRequest(request, "Execute", async, function (resultXml) {
             if (!async)
                 return resultXml;
             else
                 callback(resultXml);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _fetch = function (fetchXml, callback) {
+    var fetch = function (fetchXml, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to do a fetch request.
         ///</summary>
         ///<param name="fetchXml" type="String">
-        /// A JavaScript String with properties corresponding to the fetchXml 
+        /// A JavaScript String with properties corresponding to the fetchXml
         /// that are valid for fetch operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var msgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
                             "<a:Query>" +
-                                ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlEncode(fetchXml) : CrmXmlEncode(fetchXml)) +
+                                ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(fetchXml) : crmXmlEncode(fetchXml)) +
                             "</a:Query>" +
                         "</query>";
         var async = !!callback;
 
-        return _doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
+        return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
+            var fetchResult = $(resultXml).find("a\\:Entities").eq(0);
 
-            var fetchResult = resultXml.selectSingleNode("//a:Entities");
             var results = [];
 
-            for (var i = 0; i < fetchResult.childNodes.length; i++) {
-                var entity = new _businessEntity();
-
-                entity.deserialize(fetchResult.childNodes[i]);
+            for (var i = 0; i < fetchResult.children().length; i++) {
+                var entity = new businessEntity();
+                var deserializeEntity = fetchResult.children().eq(i);
+                entity.deserialize(deserializeEntity);
                 results[i] = entity;
             }
 
@@ -1482,26 +1694,34 @@ XrmServiceToolkit.Soap = function () {
                 return results;
             else
                 callback(results);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _retrieve = function (entityName, id, columnSet, callback) {
+    var retrieve = function (entityName, id, columnSet, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to retrieve a record.
         ///</summary>
         ///<param name="entityName" type="String">
         /// A JavaScript String corresponding to the Schema name of
         /// entity that is used for retrieve operations.
+        /// </param>
         ///<param name="id" type="String">
         /// A JavaScript String corresponding to the GUID of
         /// entity that is used for retrieve operations.
+        /// </param>
         ///<param name="columnSet" type="Array">
         /// A JavaScript Array corresponding to the attributes of
         /// entity that is used for retrieve operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var attributes = "";
+        // ReSharper disable AssignedValueIsNeverUsed
         var query = "";
+        // ReSharper restore AssignedValueIsNeverUsed
         if (columnSet != null) {
             for (var i = 0; i < columnSet.length; i++) {
                 attributes += "<b:string>" + columnSet[i] + "</b:string>";
@@ -1526,29 +1746,31 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(msgBody, "Retrieve", !!callback, function (resultXml) {
-
-            var retrieveResult = resultXml.selectSingleNode("//RetrieveResult");
-
-            var entity = new _businessEntity();
+        return doRequest(msgBody, "Retrieve", !!callback, function (resultXml) {
+            var retrieveResult = $(resultXml).find("RetrieveResult").eq(0);
+            var entity = new businessEntity();
             entity.deserialize(retrieveResult);
 
             if (!async)
                 return entity;
             else
                 callback(entity);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _retrieveMultiple = function (query, callback) {
+    var retrieveMultiple = function (query, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to do a retrieveMultiple request.
         ///</summary>
         ///<param name="query" type="String">
-        /// A JavaScript String with properties corresponding to the retrievemultiple request 
+        /// A JavaScript String with properties corresponding to the retrievemultiple request
         /// that are valid for retrievemultiple operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var msgBody =
                 [
                     "<query i:type='a:QueryExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>", query, "</query>"
@@ -1556,14 +1778,14 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(msgBody, "RetrieveMultiple", async, function (resultXml) {
-            var resultNodes = resultXml.selectSingleNode("//a:Entities");
+        return doRequest(msgBody, "RetrieveMultiple", async, function (resultXml) {
+            var resultNodes = $(resultXml).find("a\\:Entities").eq(0);
             var results = [];
 
-            for (var i = 0; i < resultNodes.childNodes.length; i++) {
-                var entity = new _businessEntity();
+            for (var i = 0; i < resultNodes.children().length; i++) {
+                var entity = new businessEntity();
 
-                entity.deserialize(resultNodes.childNodes[i]);
+                entity.deserialize(resultNodes.children().eq(i));
                 results[i] = entity;
             }
 
@@ -1571,10 +1793,12 @@ XrmServiceToolkit.Soap = function () {
                 return results;
             else
                 callback(results);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _joinArray = function (prefix, array, suffix) {
+    var joinArray = function (prefix, array, suffix) {
         var output = [];
         for (var i = 0; i < array.length; i++) {
             if (array[i] != '' && array[i] != undefined) {
@@ -1584,7 +1808,7 @@ XrmServiceToolkit.Soap = function () {
         return output.join("");
     };
 
-    var _joinConditionPair = function (attributes, values) {
+    var joinConditionPair = function (attributes, values) {
         var output = [];
         for (var i = 0; i < attributes.length; i++) {
             if (attributes[i] != '') {
@@ -1594,73 +1818,80 @@ XrmServiceToolkit.Soap = function () {
         return output.join("");
     };
 
-    var _isArray = function (input) {
+    var isArray = function (input) {
         return input.constructor.toString().indexOf("Array") != -1;
     };
 
-    var _queryByAttribute = function (queryOptions, callback) {
+    var queryByAttribute = function (queryOptions, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to do a queryByAttribute request.
         ///</summary>
         ///<param name="queryOptions" type="Object">
-        /// A JavaScript Object with properties corresponding to the queryByAttribute Criteria 
+        /// A JavaScript Object with properties corresponding to the queryByAttribute Criteria
         /// that are valid for queryByAttribute operations.
         /// queryOptions.entityName is a string represents the name of the entity
         /// queryOptions.attributes is a array represents the attributes of the entity to query
         /// queryOptions.values is a array represents the values of the attributes to query
         /// queryOptions.columnSet is a array represents the attributes of the entity to return
         /// queryOptions.orderBy is a array represents the oder conditons of the results
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var entityName = queryOptions.entityName;
         var attributes = queryOptions.attributes;
         var values = queryOptions.values;
         var columnSet = queryOptions.columnSet;
         var orderBy = queryOptions.orderBy || '';
 
-        attributes = _isArray(attributes) ? attributes : [attributes];
-        values = _isArray(values) ? values : [values];
-        orderBy = (!!orderBy && _isArray(orderBy)) ? orderBy : [orderBy];
-        columnSet = (!!columnSet && _isArray(columnSet)) ? columnSet : [columnSet];
+        attributes = isArray(attributes) ? attributes : [attributes];
+        values = isArray(values) ? values : [values];
+        orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
+        columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
 
         for (var i = 0; i < values.length; i++) {
-            values[i] = _encodeValue(values[i]);
+            values[i] = encodeValue(values[i]);
         }
 
         var xml =
                 [
                     "<fetch mapping='logical'>",
                     "   <entity name='", entityName, "'>",
-                           _joinArray("<attribute name='", columnSet, "' />"),
-                           _joinArray("<order attribute='", orderBy, "' />"),
+                           joinArray("<attribute name='", columnSet, "' />"),
+                           joinArray("<order attribute='", orderBy, "' />"),
                     "      <filter>",
-                              _joinConditionPair(attributes, values),
+                              joinConditionPair(attributes, values),
                     "      </filter>",
                     "   </entity>",
                     "</fetch>"
                 ].join("");
 
-        return _fetch(xml, callback);
+        return fetch(xml, callback);
     };
 
-    var _setState = function (entityName, id, stateCode, statusCode, callback) {
+    var setState = function (entityName, id, stateCode, statusCode, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to setState of a record.
         ///</summary>
         ///<param name="entityName" type="String">
         /// A JavaScript String corresponding to the Schema name of
         /// entity that is used for setState operations.
+        /// </param>
         ///<param name="id" type="String">
         /// A JavaScript String corresponding to the GUID of
         /// entity that is used for setState operations.
+        /// </param>
         ///<param name="stateCode" type="Int">
         /// A JavaScript Integer corresponding to the value of
         /// entity state that is used for setState operations.
+        /// </param>
         ///<param name="statusCode" type="Int">
         /// A JavaScript Integer corresponding to the value of
         /// entity status that is used for setState operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var request = [
             "<request i:type='b:SetStateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
                 "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
@@ -1692,41 +1923,48 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _associate = function (relationshipName, targetEntityName, targetId, relatedEntityName, relatedBusinessEntities, callback) {
-        //<summary>
+    var associate = function (relationshipName, targetEntityName, targetId, relatedEntityName, relatedBusinessEntities, callback) {
+        ///<summary>
         /// Sends synchronous/asynchronous request to associate records.
         ///</summary>
         ///<param name="relationshipName" type="String">
         /// A JavaScript String corresponding to the relationship name
         /// that is used for associate operations.
+        /// </param>
         ///<param name="targetEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the target entity
         /// that is used for associate operations.
+        /// </param>
         ///<param name="targetId" type="String">
         /// A JavaScript String corresponding to the GUID of the target entity
         /// that is used for associate operations.
+        /// </param>
         ///<param name="relatedEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the related entity
         /// that is used for associate operations.
+        /// </param>
         ///<param name="relationshipBusinessEntities" type="Array">
         /// A JavaScript Array corresponding to the collection of the related entities as BusinessEntity
         /// that is used for associate operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var relatedEntities = relatedBusinessEntities;
 
-        relatedEntities = _isArray(relatedEntities) ? relatedEntities : [relatedEntities];
+        relatedEntities = isArray(relatedEntities) ? relatedEntities : [relatedEntities];
 
         var output = [];
         for (var i = 0; i < relatedEntities.length; i++) {
@@ -1773,41 +2011,48 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _disassociate = function (relationshipName, targetEntityName, targetId, relatedEntityName, relatedBusinessEntities, callback) {
-        //<summary>
+    var disassociate = function (relationshipName, targetEntityName, targetId, relatedEntityName, relatedBusinessEntities, callback) {
+        ///<summary>
         /// Sends synchronous/asynchronous request to disassociate records.
         ///</summary>
         ///<param name="relationshipName" type="String">
         /// A JavaScript String corresponding to the relationship name
         /// that is used for disassociate operations.
+        /// </param>
         ///<param name="targetEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the target entity
         /// that is used for disassociate operations.
+        /// </param>
         ///<param name="targetId" type="String">
         /// A JavaScript String corresponding to the GUID of the target entity
         /// that is used for disassociate operations.
+        /// </param>
         ///<param name="relatedEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the related entity
         /// that is used for disassociate operations.
+        /// </param>
         ///<param name="relationshipBusinessEntities" type="Array">
         /// A JavaScript Array corresponding to the collection of the related entities as BusinessEntity
         /// that is used for disassociate operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
         var relatedEntities = relatedBusinessEntities;
 
-        relatedEntities = _isArray(relatedEntities) ? relatedEntities : [relatedEntities];
+        relatedEntities = isArray(relatedEntities) ? relatedEntities : [relatedEntities];
 
         var output = [];
         for (var i = 0; i < relatedEntities.length; i++) {
@@ -1854,18 +2099,19 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _getCurrentUserId = function () {
+    var getCurrentUserId = function () {
         ///<summary>
         /// Sends synchronous request to retrieve the GUID of the current user.
         ///</summary>
@@ -1874,12 +2120,12 @@ XrmServiceToolkit.Soap = function () {
                         "<a:RequestId i:nil='true' />" +
                         "<a:RequestName>WhoAmI</a:RequestName>" +
                       "</request>";
-        var xmlDoc = _doRequest(request, "Execute");
+        var xmlDoc = doRequest(request, "Execute");
 
-        return xmlDoc.getElementsByTagName("a:Results")[0].childNodes[0].childNodes[1].text;
+        return $(xmlDoc).find('a\\:Results').children().eq(0).children().eq(1).text();
     };
 
-    var _getCurrentUserBusinessUnitId = function () {
+    var getCurrentUserBusinessUnitId = function () {
         ///<summary>
         /// Sends synchronous request to retrieve the GUID of the current user's business unit.
         ///</summary>
@@ -1888,12 +2134,12 @@ XrmServiceToolkit.Soap = function () {
                         "<a:RequestId i:nil='true' />" +
                         "<a:RequestName>WhoAmI</a:RequestName>" +
                       "</request>";
-        var xmlDoc = _doRequest(request, "Execute");
+        var xmlDoc = doRequest(request, "Execute");
 
-        return xmlDoc.getElementsByTagName("a:Results")[0].childNodes[1].childNodes[1].text;
+        return $(xmlDoc).find('a\\:Results').children().eq(1).children().eq(1).text();
     };
 
-    var _getCurrentUserRoles = function () {
+    var getCurrentUserRoles = function () {
         ///<summary>
         /// Sends synchronous request to retrieve the list of the current user's roles.
         ///</summary>
@@ -1916,7 +2162,7 @@ XrmServiceToolkit.Soap = function () {
                     "</fetch>"
                 ].join("");
 
-        var fetchResult = _fetch(xml);
+        var fetchResult = fetch(xml);
         var roles = [];
 
         if (fetchResult !== null) {
@@ -1928,13 +2174,13 @@ XrmServiceToolkit.Soap = function () {
         return roles;
     };
 
-    var _isCurrentUserInRole = function () {
+    var isCurrentUserInRole = function () {
         ///<summary>
         /// Sends synchronous request to check if the current user has certain roles
         /// Passs name of role as arguments. For example, IsCurrentUserInRole('System Administrator')
         /// Returns true or false.
         ///</summary>
-        var roles = _getCurrentUserRoles();
+        var roles = getCurrentUserRoles();
         for (var i = 0; i < roles.length; i++) {
             for (var j = 0; j < arguments.length; j++) {
                 if (roles[i] === arguments[j]) {
@@ -1946,24 +2192,29 @@ XrmServiceToolkit.Soap = function () {
         return false;
     };
 
-    var _assign = function (targetEntityName, targetId, assigneeEntityName, assigneeId, callback) {
+    var assign = function (targetEntityName, targetId, assigneeEntityName, assigneeId, callback) {
         ///<summary>
         /// Sends synchronous/asynchronous request to assign an existing record to a user / a team.
         ///</summary>
         ///<param name="targetEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the target entity
         /// that is used for assign operations.
+        /// </param>
         ///<param name="targetId" type="String">
         /// A JavaScript String corresponding to the GUID of the target entity
         /// that is used for assign operations.
+        /// </param>
         ///<param name="assigneeEntityName" type="String">
         /// A JavaScript String corresponding to the schema name of the assignee entity
         /// that is used for assign operations.
+        /// </param>
         ///<param name="assigneeId" type="String">
         /// A JavaScript String corresponding to the GUID of the assignee entity
         /// that is used for assign operations.
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
 
         var request = "<request i:type='b:AssignRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
                         "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>" +
@@ -1986,36 +2237,38 @@ XrmServiceToolkit.Soap = function () {
                         "</a:Parameters>" +
                         "<a:RequestId i:nil='true' />" +
                         "<a:RequestName>Assign</a:RequestName>" +
-                      "</request>"
-
+                      "</request>";
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _grantAccess = function (accessOptions, callback) {
+    var grantAccess = function (accessOptions, callback) {
         ///<summary>
-        /// Sends synchronous/asynchronous request to do a grantAccess request. 
+        /// Sends synchronous/asynchronous request to do a grantAccess request.
         /// Levels of Access Options are: AppendAccess, AppendToAccess, AssignAccess, CreateAccess, DeleteAccess, None, ReadAccess, ShareAccess, and WriteAccess
         ///</summary>
         ///<param name="accessOptions" type="Object">
-        /// A JavaScript Object with properties corresponding to the grantAccess Criteria 
+        /// A JavaScript Object with properties corresponding to the grantAccess Criteria
         /// that are valid for grantAccess operations.
         /// accessOptions.targetEntityName is a string represents the name of the target entity
         /// accessOptions.targetEntityId is a string represents the GUID of the target entity
         /// accessOptions.principalEntityName is a string represents the name of the principal entity
         /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
         /// accessOptions.accessRights is a array represents the access conditons of the results
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
 
         var targetEntityName = accessOptions.targetEntityName;
         var targetEntityId = accessOptions.targetEntityId;
@@ -2023,11 +2276,11 @@ XrmServiceToolkit.Soap = function () {
         var principalEntityId = accessOptions.principalEntityId;
         var accessRights = accessOptions.accessRights;
 
-        accessRights = _isArray(accessRights) ? accessRights : [accessRights];
+        accessRights = isArray(accessRights) ? accessRights : [accessRights];
 
         var accessRightString = "";
         for (var i = 0; i < accessRights.length; i++) {
-            accessRightString += _encodeValue(accessRights[i]) + " ";
+            accessRightString += encodeValue(accessRights[i]) + " ";
         }
 
         var request = "<request i:type='b:GrantAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
@@ -2054,37 +2307,38 @@ XrmServiceToolkit.Soap = function () {
 	                    "</a:Parameters>" +
 	                    "<a:RequestId i:nil='true' />" +
 	                    "<a:RequestName>GrantAccess</a:RequestName>" +
-                    "</request>"
-
+                    "</request>";
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
-
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _modifyAccess = function (accessOptions, callback) {
+    var modifyAccess = function (accessOptions, callback) {
         ///<summary>
-        /// Sends synchronous/asynchronous request to do a modifyAccess request. 
+        /// Sends synchronous/asynchronous request to do a modifyAccess request.
         /// Levels of Access Options are: AppendAccess, AppendToAccess, AssignAccess, CreateAccess, DeleteAccess, None, ReadAccess, ShareAccess, and WriteAccess
         ///</summary>
         ///<param name="accessOptions" type="Object">
-        /// A JavaScript Object with properties corresponding to the modifyAccess Criteria 
+        /// A JavaScript Object with properties corresponding to the modifyAccess Criteria
         /// that are valid for modifyAccess operations.
         /// accessOptions.targetEntityName is a string represents the name of the target entity
         /// accessOptions.targetEntityId is a string represents the GUID of the target entity
         /// accessOptions.principalEntityName is a string represents the name of the principal entity
         /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
         /// accessOptions.accessRights is a array represents the access conditons of the results
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
 
         var targetEntityName = accessOptions.targetEntityName;
         var targetEntityId = accessOptions.targetEntityId;
@@ -2092,11 +2346,11 @@ XrmServiceToolkit.Soap = function () {
         var principalEntityId = accessOptions.principalEntityId;
         var accessRights = accessOptions.accessRights;
 
-        accessRights = _isArray(accessRights) ? accessRights : [accessRights];
+        accessRights = isArray(accessRights) ? accessRights : [accessRights];
 
         var accessRightString = "";
         for (var i = 0; i < accessRights.length; i++) {
-            accessRightString += _encodeValue(accessRights[i]) + " ";
+            accessRightString += encodeValue(accessRights[i]) + " ";
         }
 
         var request = "<request i:type='b:ModifyAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
@@ -2123,35 +2377,36 @@ XrmServiceToolkit.Soap = function () {
 	                    "</a:Parameters>" +
 	                    "<a:RequestId i:nil='true' />" +
 	                    "<a:RequestName>ModifyAccess</a:RequestName>" +
-                    "</request>"
-
+                    "</request>";
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
-
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _revokeAccess = function (accessOptions, callback) {
+    var revokeAccess = function (accessOptions, callback) {
         ///<summary>
-        /// Sends synchronous/asynchronous request to do a revokeAccess request. 
+        /// Sends synchronous/asynchronous request to do a revokeAccess request.
         ///</summary>
         ///<param name="accessOptions" type="Object">
-        /// A JavaScript Object with properties corresponding to the revokeAccess Criteria 
+        /// A JavaScript Object with properties corresponding to the revokeAccess Criteria
         /// that are valid for revokeAccess operations.
         /// accessOptions.targetEntityName is a string represents the name of the target entity
         /// accessOptions.targetEntityId is a string represents the GUID of the target entity
         /// accessOptions.revokeeEntityName is a string represents the name of the revokee entity
         /// accessOptions.revokeeEntityId is a string represents the GUID of the revokee entity
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
 
         var targetEntityName = accessOptions.targetEntityName;
         var targetEntityId = accessOptions.targetEntityId;
@@ -2179,34 +2434,36 @@ XrmServiceToolkit.Soap = function () {
 	                    "</a:Parameters>" +
 	                    "<a:RequestId i:nil='true' />" +
 	                    "<a:RequestName>RevokeAccess</a:RequestName>" +
-                    "</request>"
-
+                    "</request>";
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('ExecuteResult').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
-    var _retrievePrincipalAccess = function (accessOptions, callback) {
+    var retrievePrincipalAccess = function (accessOptions, callback) {
         ///<summary>
-        /// Sends synchronous/asynchronous request to do a retrievePrincipalAccess request. 
+        /// Sends synchronous/asynchronous request to do a retrievePrincipalAccess request.
         ///</summary>
         ///<param name="accessOptions" type="Object">
-        /// A JavaScript Object with properties corresponding to the retrievePrincipalAccess Criteria 
+        /// A JavaScript Object with properties corresponding to the retrievePrincipalAccess Criteria
         /// that are valid for retrievePrincipalAccess operations.
         /// accessOptions.targetEntityName is a string represents the name of the target entity
         /// accessOptions.targetEntityId is a string represents the GUID of the target entity
         /// accessOptions.principalEntityName is a string represents the name of the principal entity
         /// accessOptions.principalEntityId is a string represents the GUID of the principal entity
+        /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
 
         var targetEntityName = accessOptions.targetEntityName;
         var targetEntityId = accessOptions.targetEntityId;
@@ -2234,44 +2491,410 @@ XrmServiceToolkit.Soap = function () {
 	                    "</a:Parameters>" +
 	                    "<a:RequestId i:nil='true' />" +
 	                    "<a:RequestName>RetrievePrincipalAccess</a:RequestName>" +
-                    "</request>"
-
+                    "</request>";
         var async = !!callback;
 
-        return _doRequest(request, "Execute", async, function (resultXml) {
-
-            var response = resultXml.selectSingleNode("//ExecuteResponse/ExecuteResult/a:Results/a:KeyValuePairOfstringanyType/c:value");
-            var result = ((typeof CrmEncodeDecode != 'undefined') ? CrmEncodeDecode.CrmXmlDecode(response.text) : CrmXmlDecode(response.text));
+        return doRequest(request, "Execute", async, function (resultXml) {
+            var response = $(resultXml).find('c\\:value').eq(0);
+            var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
             else
                 callback(result);
+            // ReSharper disable NotAllPathsReturnValue
         });
+        // ReSharper restore NotAllPathsReturnValue
     };
 
     //Toolkit's Return Static Methods
     return {
-        BusinessEntity: _businessEntity,
-        Execute: _execute,
-        Fetch: _fetch,
-        Retrieve: _retrieve,
-        RetrieveMultiple: _retrieveMultiple,
-        Create: _create,
-        Update: _update,
-        Delete: _delete,
-        QueryByAttribute: _queryByAttribute,
-        SetState: _setState,
-        Associate: _associate,
-        Disassociate: _disassociate,
-        Assign: _assign,
-        RetrievePrincipalAccess: _retrievePrincipalAccess,
-        GrantAccess: _grantAccess,
-        ModifyAccess: _modifyAccess,
-        RevokeAccess: _revokeAccess,
-        GetCurrentUserId: _getCurrentUserId,
-        GetCurrentUserBusinessUnitId: _getCurrentUserBusinessUnitId,
-        GetCurrentUserRoles: _getCurrentUserRoles,
-        IsCurrentUserRole: _isCurrentUserInRole
+        BusinessEntity: businessEntity,
+        Execute: execute,
+        Fetch: fetch,
+        Retrieve: retrieve,
+        RetrieveMultiple: retrieveMultiple,
+        Create: sCreate,
+        Update: sUpdate,
+        Delete: sDelete,
+        QueryByAttribute: queryByAttribute,
+        SetState: setState,
+        Associate: associate,
+        Disassociate: disassociate,
+        Assign: assign,
+        RetrievePrincipalAccess: retrievePrincipalAccess,
+        GrantAccess: grantAccess,
+        ModifyAccess: modifyAccess,
+        RevokeAccess: revokeAccess,
+        GetCurrentUserId: getCurrentUserId,
+        GetCurrentUserBusinessUnitId: getCurrentUserBusinessUnitId,
+        GetCurrentUserRoles: getCurrentUserRoles,
+        IsCurrentUserRole: isCurrentUserInRole
+    };
+} ();
+
+XrmServiceToolkit.Extension = function () {
+    // jQuery Load Help function to add tooltip for attribute in CRM 2011. Unsupported because of the usage of DOM object edit.
+    //****************************************************
+    var jQueryXrmFieldTooltip = function (filename, bDisplayImg) {
+        /*
+        This function is used add tooltips to any field in CRM2011.
+
+        This function requires the following parameters:
+        filename :   name of the XML webresource
+        bDisplayImg: bolean to show/hide the help image (true/false)
+        Returns: nothing
+        Example:  jQueryLoadHelp('cm_xmlhelpfile', true);
+        Designed by: http://lambrite.com/?p=221
+        Adaptd by   Geron Profet (www.crmxpg.nl), Jaimie Ji
+        Modified by Jaimie ji with jQuery and cross browser
+        */
+
+        if (typeof jQuery == 'undefined') {
+            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+            return;
+        }
+
+        jQuery.support.cors = true;
+
+        $.ajax({
+            type: "GET",
+            url: "../WebResources/" + filename,
+            dataType: "xml",
+            success: parseHelpXml,
+            // ReSharper disable UnusedParameter
+            error: function (xmlHttpRequest, textStatus, errorThrown) {
+                // ReSharper restore UnusedParameter
+                alert('Something is wrong to setup the tooltip for the fields. Please contact your administrator');
+            }
+        }); //end ajax
+
+        //****************************************************
+        function parseHelpXml(data) {
+            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
+            var entXml = $("entity[name=" + entity + "]", data);
+            $(entXml).children().each(function () {
+                var attr = $(this).attr('name');
+                var txt = $(this).find('shorthelp').text();
+                registerHelp(entity, attr, txt);
+            });
+        }
+        //****************************************************
+        function registerHelp(entity, attr, txt) {
+            var obj = $('#' + attr + '_c').children(':first');
+            if (obj != null) {
+                var html = '<img id="img_' + attr + '" src="/_imgs/ico/16_help.gif" alt="' + txt + '" width="16" height="16" /><div id="help_' + attr + '" style="visibility: hidden; position: absolute;">: ' + txt + '</div>';
+                $(obj).append(html);
+                //20110909 GP: added line to hide/show help image
+                $('#img_' + attr).css('display', (bDisplayImg) ? 'inline' : 'none');
+            }
+        }
     };
 
+    // Generic Dependent Option Set Function. Changed from CRM 2011 SDK example
+    var jQueryXrmDependentOptionSet = function (filename) {
+        if (typeof jQuery == 'undefined') {
+            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+            return;
+        }
+
+        jQuery.support.cors = true;
+
+        $.ajax({
+            type: "GET",
+            url: "../WebResources/" + filename,
+            dataType: "xml",
+            success: init,
+            // ReSharper disable UnusedParameter
+            error: function (xmlHttpRequest, textStatus, errorThrown) {
+                // ReSharper restore UnusedParameter
+                alert('Something is wrong to setup the dependent picklist. Please contact your administrator');
+            }
+        }); //end ajax
+
+        function init(data) {
+            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
+            var configWr = $("entity[name=" + entity + "]", data);
+
+            //Convert the XML Data into a JScript object.
+            var parentFields = configWr.children("ParentField");
+            var jsConfig = [];
+            for (var i = 0; i < parentFields.length; i++) {
+                var node = parentFields[i];
+                var mapping = {};
+                mapping.parent = $(node).attr("id");
+                mapping.dependent = $(node).children("DependentField:first").attr("id");
+                mapping.options = [];
+                var options = $(node).children("Option");
+                for (var a = 0; a < options.length; a++) {
+                    var option = {};
+                    option.value = $(options[a]).attr("value");
+                    option.showOptions = [];
+                    var optionsToShow = $(options[a]).children("ShowOption");
+                    for (var b = 0; b < optionsToShow.length; b++) {
+                        var optionToShow = {};
+                        optionToShow.value = $(optionsToShow[b]).attr("value");
+                        optionToShow.text = $(optionsToShow[b]).attr("label"); // Label is not used in the code.
+
+                        option.showOptions.push(optionToShow);
+                    }
+                    mapping.options.push(option);
+                }
+                jsConfig.push(mapping);
+            }
+            // Attach the configuration object to jQueryXrmDependentOptionSet
+            // so it will be available for the OnChange events.
+            jQueryXrmDependentOptionSet.config = jsConfig;
+
+            //Fire the OnChange event for the mapped optionset fields
+            // so that the dependent fields are filtered for the current values.
+            for (var depOptionSet in jQueryXrmDependentOptionSet.config) {
+                var parent = jQueryXrmDependentOptionSet.config[depOptionSet].parent;
+                var child = jQueryXrmDependentOptionSet.config[depOptionSet].dependent;
+                filterDependentField(parent, child, jQueryXrmDependentOptionSet);
+            }
+        }
+
+        // This is the function set on the OnChange event for
+        // parent fields.
+        // ReSharper disable DuplicatingLocalDeclaration
+        function filterDependentField(parentField, childField, jQueryXrmDependentOptionSet) {
+            // ReSharper restore DuplicatingLocalDeclaration
+            for (var depOptionSet in jQueryXrmDependentOptionSet.config) {
+                var dependentOptionSet = jQueryXrmDependentOptionSet.config[depOptionSet];
+                /* Match the parameters to the correct dependent optionset mapping*/
+                if ((dependentOptionSet.parent == parentField) && (dependentOptionSet.dependent == childField)) {
+                    /* Get references to the related fields*/
+                    var parent = Xrm.Page.data.entity.attributes.get(parentField);
+                    var child = Xrm.Page.data.entity.attributes.get(childField);
+
+                    var parentControl = Xrm.Page.getControl(parentField);
+                    var childControl = Xrm.Page.getControl(childField);
+                    /* Capture the current value of the child field*/
+                    var currentChildFieldValue = child.getValue();
+
+                    /* If the parent field is null the Child field can be set to null */
+                    var controls;
+                    var ctrl;
+                    if (parent.getValue() == null) {
+                        child.setValue(null);
+                        child.setSubmitMode("always");
+                        child.fireOnChange();
+
+                        // Any attribute may have any number of controls,
+                        // so disable each instance.
+                        controls = child.controls.get();
+                        for (ctrl in controls) {
+                            controls[ctrl].setDisabled(true);
+                        }
+                        return;
+                    }
+
+                    for (var os in dependentOptionSet.options) {
+                        var options = dependentOptionSet.options[os];
+                        var optionsToShow = options.showOptions;
+                        /* Find the Options that corresponds to the value of the parent field. */
+                        if (parent.getValue() == options.value) {
+                            controls = child.controls.get(); /*Enable the field and set the options*/
+                            for (ctrl in controls) {
+                                controls[ctrl].setDisabled(false);
+                                controls[ctrl].clearOptions();
+
+                                for (var option in optionsToShow) {
+                                    controls[ctrl].addOption(optionsToShow[option]);
+                                }
+                            }
+                            /*Check whether the current value is valid*/
+                            var bCurrentValueIsValid = false;
+                            var childFieldOptions = optionsToShow;
+
+                            for (var validOptionIndex in childFieldOptions) {
+                                var optionDataValue = childFieldOptions[validOptionIndex].value;
+
+                                if (currentChildFieldValue == optionDataValue) {
+                                    bCurrentValueIsValid = true;
+                                    break;
+                                }
+                            }
+                            /*
+                            If the value is valid, set it.
+                            If not, set the child field to null
+                            */
+                            if (bCurrentValueIsValid) {
+                                child.setValue(currentChildFieldValue);
+                            }
+                            else {
+                                child.setValue(null);
+                            }
+                            child.setSubmitMode("always");
+                            child.fireOnChange();
+
+                            if (parentControl.getDisabled() == true) {
+                                childControl.setDisabled(true);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    var jQueryXrmCustomFilterView = function (filename) {
+        if (typeof jQuery == 'undefined') {
+            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+            return;
+        }
+
+        jQuery.support.cors = true;
+
+        $.ajax({
+            type: "GET",
+            url: "../WebResources/" + filename,
+            dataType: "xml",
+            success: init,
+            // ReSharper disable UnusedParameter
+            error: function (xmlHttpRequest, textStatus, errorThrown) {
+                // ReSharper restore UnusedParameter
+                alert('Something is wrong to setup the custom filter view. Please contact your administrator');
+            }
+        }); //end ajax
+
+        function init(data) {
+            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
+            var configWr = $("entity[name=" + entity + "]", data);
+
+            //Convert the XML Data into a JScript object.
+            var targetFields = configWr.children("TargetField");
+            var jsConfig = [];
+            for (var i = 0; i < targetFields.length; i++) {
+                var node = targetFields[i];
+                var mapping = {};
+                mapping.target = $(node).attr("id");
+                mapping.entityName = $(node).attr("viewentity");
+                mapping.viewName = $(node).attr("viewname");
+                mapping.dynamic = $(node).children("dynamic").children();
+                mapping.fetchXml = xmlToString($(node).children("fetch"));
+                mapping.layoutXml = xmlToString($(node).children("grid"));
+
+                jsConfig.push(mapping);
+            }
+            // Attach the configuration object to JQueryCustomFilterView
+            // so it will be available for the OnChange events.
+            jQueryXrmCustomFilterView.config = jsConfig;
+
+            //Fire the OnChange event for the mapped fields
+            // so that the lookup dialog are changed with the filtered view for the current values.
+            for (var customFilterView in jQueryXrmCustomFilterView.config) {
+                var target = jQueryXrmCustomFilterView.config[customFilterView].target;
+                var entityName = jQueryXrmCustomFilterView.config[customFilterView].entityName;
+                var viewName = jQueryXrmCustomFilterView.config[customFilterView].viewName;
+                var dynamic = jQueryXrmCustomFilterView.config[customFilterView].dynamic;
+                var fetchXml = jQueryXrmCustomFilterView.config[customFilterView].fetchXml;
+                var layoutXml = jQueryXrmCustomFilterView.config[customFilterView].layoutXml;
+
+                //TODO: Adding logics for various field and conditions. More tests required. 
+                if (dynamic != null) {
+                    for (var a = 0; a < dynamic.length; a++) {
+                        var dynamicValue = Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
+                        var operator = $(dynamic).attr('operator');
+                        var dynamicString;
+                        switch (operator.toLowerCase()) {
+                            case 'contains':
+                            case 'does not contain':
+                                dynamicString = '%' + $(dynamic).attr('fetchnote') + '%';
+                                break;
+                            case 'begins with':
+                            case 'does not begin with':
+                                dynamicString = $(dynamic).attr('fetchnote') + '%';
+                                break;
+                            case 'ends with':
+                            case 'does not end with':
+                                dynamicString = '%' + $(dynamic).attr('fetchnote');
+                                break;
+                            default:
+                                dynamicString = $(dynamic).attr('fetchnote');
+                                break;
+                        }
+
+                        fetchXml = fetchXml.replace(dynamicString, dynamicValue);
+                    }
+                }
+
+                //replace the values if required
+                setCustomFilterView(target, entityName, viewName, fetchXml, layoutXml);
+            }
+        }
+
+        function setCustomFilterView(target, entityName, viewName, fetchXml, layoutXml) {
+            // use randomly generated GUID Id for our new view
+            var viewId = "{1DFB2B35-B07C-44D1-868D-258DEEAB88E2}";
+
+            // add the Custom View to the indicated [lookupFieldName] Control
+            Xrm.Page.getControl(target).addCustomView(viewId, entityName, viewName, fetchXml, layoutXml, true);
+        }
+
+        function xmlToString(xmlData) {
+            var xmlString = '';
+            try {
+                if (xmlData != null && xmlData.length > 0) {
+                    //IE
+                    if (window.ActiveXObject) {
+                        xmlString = xmlData[0].xml;
+                    }
+                    // code for Mozilla, Firefox, Opera, etc.
+                    else {
+                        // ReSharper disable InconsistentNaming
+                        xmlString = (new XMLSerializer()).serializeToString(xmlData[0]);
+                        // ReSharper restore InconsistentNaming
+                    }
+                    return xmlString;
+                }
+            } catch (e) {
+                alert("Cannot convert the XML to a string.");
+            }
+            return xmlString;
+        }
+    };
+
+    // Disable or Enable to insert/edit note for entity. Unsupported because of DOM object edit
+    var jQueryXrmFormatNotesControl = function (allowInsert, allowEdit) {
+        if (typeof jQuery == 'undefined') {
+            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
+            return;
+        }
+
+        jQuery.support.cors = true;
+
+        var notescontrol = $('#notescontrol');
+        if (notescontrol == null) return;
+        var url = notescontrol.attr('url');
+        if (url == null) return;
+        if (!allowInsert) {
+            url = url.replace("EnableInsert=true", "EnableInsert=false");
+        }
+        if (!allowEdit) {
+            url = url.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
+        }
+
+        notescontrol.attr('url', url);
+
+        var src = notescontrol.attr('src');
+        if (src == null) return;
+        if (!allowInsert) {
+            src = url.replace("EnableInsert=true", "EnableInsert=false");
+        }
+        if (!allowEdit) {
+            src = url.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
+        }
+
+        notescontrol.attr('src', src);
+    };
+
+    // Toolkit's public static members
+    return {
+        JQueryXrmFieldTooltip: jQueryXrmFieldTooltip,
+        JQueryXrmDependentOptionSet: jQueryXrmDependentOptionSet,
+        JQueryXrmCustomFilterView: jQueryXrmCustomFilterView,
+        JQueryXrmFormatNotesControl: jQueryXrmFormatNotesControl
+    };
 } ();

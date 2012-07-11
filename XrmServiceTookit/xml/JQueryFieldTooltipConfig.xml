@@ -1,0 +1,7 @@
+﻿<help>
+  <entity name="account">
+    <attribute name="name">
+      <shorthelp>&lt;br/&gt;&lt;br/&gt;This is the first line&lt;br/&gt;This is the second line</shorthelp>
+    </attribute>
+  </entity>
+</help>
