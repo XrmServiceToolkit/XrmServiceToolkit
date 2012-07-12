@@ -21,7 +21,7 @@
           <attribute name="contactid" />
           <order attribute="fullname" descending="false" />
           <filter type="and">
-            <condition attribute="new_country" operator="eq" value="fnCountry" />
+            <condition attribute="new_country" operator="like" value="fnCountry" />
             <condition attribute="statuscode" operator="eq" value="1" />
           </filter>
         </entity>
