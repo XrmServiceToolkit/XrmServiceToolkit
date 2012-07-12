@@ -3,10 +3,15 @@
   <entity name="account">
     <!-- Use the template to add filter view for other fields -->
     <targetField id="new_primarycontactid" viewentity="contact" viewname="Filtered Lookup View">
+      <!-- this section defines the fields for which their values will be used to replace the correspondent fetchnote -->
       <dynamic>
-        <!-- this section defines the fields for which their values will be used to replace the correspondent fetchnote -->
-        <!-- define all the fields if you need to use the values to build the correct fetch XML -->
-        <field name="new_originatedcountry" operator="contains" fetchnote="fnCountry"></field>
+        <!-- [operator] attribute value is from CRM advanced find. Leave empty if not specified -->
+        <!-- this is an example to filter by a standard field in crm. only value will be used.  -->
+        <field name="new_originatedcountry" fieldvaluetype="value" operator="contains" fetchnote="fnCountry"></field>
+        <!-- this is an example to filter by a OptionSet field in crm. label of selected option will be used.  -->
+        <field name="new_originatedcountryoptionset" fieldvaluetype="label" operator="contains" fetchnote="fnCountry"></field>
+        <!-- this is an example to filter by a lookup field if out-of-box filtered lookups do not fit what you need. For example, the two lookups are random. -->
+        <field name="new_originatedstateid" fieldvaluetype="name" operator="contains" fetchnote="fnCountry"></field>
       </dynamic>
       <!-- using advanced find to get the fetchXml -->
       <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">

@@ -2795,24 +2795,49 @@ XrmServiceToolkit.Extension = function () {
                 //TODO: Adding logics for various field and conditions. More tests required. 
                 if (dynamic != null) {
                     for (var a = 0; a < dynamic.length; a++) {
-                        var dynamicValue = Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
+                        var dynamicControlType = Xrm.Page.getControl($(dynamic).attr('name')).getControlType();
+                        var fieldValueType = $(dynamic).attr('fieldvaluetype'); //for optionset, name might be used to filter
+                        if (Xrm.Page.getAttribute($(dynamic).attr('name')).getValue() == null) {
+                            alert($(dynamic).attr('name') + ' does not have a value. Please put validation logic on the field change to call this function. Only use XrmServiceToolkit.Extension.JQueryXrmCustomFilterView when the field has a value.');
+                            return;
+                        }
+                        var dynamicValue = null;
+                        switch (dynamicControlType) {
+                            case 'standard':
+                                dynamicValue = Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
+                                break;
+                            case 'optionset':
+                                dynamicValue = (fieldValueType != null && fieldValueType == 'label') ? Xrm.Page.getAttribute($(dynamic).attr('name')).getValue().text : Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
+                                break;
+                            case 'lookup':
+                                dynamicValue = (fieldValueType != null && fieldValueType == 'name') ? Xrm.Page.getAttribute($(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute($(dynamic).attr('name')).getValue()[0].id;
+                                break;
+                            default:
+                                alert($(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
+                                break;
+                        }
+
                         var operator = $(dynamic).attr('operator');
-                        var dynamicString;
+                        if (operator == null) {
+                            alert('operator is missing in the configuration file. Please fix the issue');
+                            return;
+                        }
+                        var dynamicString = $(dynamic).attr('fetchnote');
                         switch (operator.toLowerCase()) {
                             case 'contains':
                             case 'does not contain':
-                                dynamicString = '%' + $(dynamic).attr('fetchnote') + '%';
+                                dynamicValue = '%' + dynamicValue + '%';
                                 break;
                             case 'begins with':
                             case 'does not begin with':
-                                dynamicString = $(dynamic).attr('fetchnote') + '%';
+                                dynamicValue = dynamicValue + '%';
                                 break;
                             case 'ends with':
                             case 'does not end with':
-                                dynamicString = '%' + $(dynamic).attr('fetchnote');
+                                dynamicValue = '%' + dynamicValue;
                                 break;
                             default:
-                                dynamicString = $(dynamic).attr('fetchnote');
+                                dynamicValue = dynamicValue;
                                 break;
                         }
 
