@@ -183,13 +183,7 @@ XrmServiceToolkit.Common = function () {
         /// The warning level of the message: [1 critial, 2 information, 3 warning]
         /// </param>
         /// <returns type="void" />
-
-        if (typeof jQuery == 'undefined') {
-            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
-            return;
-        }
-
-        var notificationsArea = $("#crmNotifications");
+        var notificationsArea = document.getElementById('crmNotifications');
         if (notificationsArea == null) {
             alert('div not found'); return;
         }
@@ -236,6 +230,13 @@ XrmServiceToolkit.Common = function () {
     };
 
     var disableAllControlsInTab = function (tabControlNo) {
+        /// <summary>
+        /// Disable all controls in a tab by tab number.
+        /// </summary>
+        /// <param name="tabControlNo" type="int">
+        /// The number of the tab
+        /// </param>
+        /// <returns type="void" />
         var tabControl = Xrm.Page.ui.tabs.get(tabControlNo);
         if (tabControl != null) {
             Xrm.Page.ui.controls.forEach(
@@ -247,7 +248,14 @@ XrmServiceToolkit.Common = function () {
         }
     };
 
-     var disableAllControlsInSection = function (sectionLabel) {
+    var disableAllControlsInSection = function (sectionLabel) {
+        /// <summary>
+        /// Disable all controls in a section by section label.
+        /// </summary>
+        /// <param name="sectionLabel" type="string">
+        /// The label of the section
+        /// </param>
+        /// <returns type="void" />
          var tabs = Xrm.Page.ui.tabs;
          for (var i = 0; i < tabs.getLength(); i++) {
              var tab = tabs.get(i);
@@ -2536,6 +2544,16 @@ XrmServiceToolkit.Extension = function () {
     // jQuery Load Help function to add tooltip for attribute in CRM 2011. Unsupported because of the usage of DOM object edit.
     //****************************************************
     var jQueryXrmFieldTooltip = function (filename, bDisplayImg) {
+        ///<summary>
+        /// A generic configurable method to add tooltip to crm 2011 field. 
+        ///</summary>
+        ///<param name="filename" type="String">
+        /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
+        /// </param>
+        ///<param name="bDisplayImg" type="boolean">
+        /// A JavaScript boolean corresponding if display a help image for the tooltip
+        /// </param>
+
         /*
         This function is used add tooltips to any field in CRM2011.
 
@@ -2592,6 +2610,12 @@ XrmServiceToolkit.Extension = function () {
 
     // Generic Dependent Option Set Function. Changed from CRM 2011 SDK example
     var jQueryXrmDependentOptionSet = function (filename) {
+        ///<summary>
+        /// A generic configurable method to configure dependent optionset for CRM 2011 instance
+        ///</summary>
+        ///<param name="filename" type="String">
+        /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
+        /// </param>
         if (typeof jQuery == 'undefined') {
             alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
             return;
@@ -2740,6 +2764,12 @@ XrmServiceToolkit.Extension = function () {
     };
 
     var jQueryXrmCustomFilterView = function (filename) {
+        ///<summary>
+        /// A generic configurable method to add custom filter view to lookup field in crm 2011 instance
+        ///</summary>
+        ///<param name="filename" type="String">
+        /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
+        /// </param>
         if (typeof jQuery == 'undefined') {
             alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
             return;
@@ -2883,6 +2913,16 @@ XrmServiceToolkit.Extension = function () {
 
     // Disable or Enable to insert/edit note for entity. Unsupported because of DOM object edit
     var jQueryXrmFormatNotesControl = function (allowInsert, allowEdit) {
+        ///<summary>
+        /// A generic configurable method to format the note control in crm 2011 instance
+        ///</summary>
+        ///<param name="allowInsert" type="Boolean">
+        /// A JavaScript boolean to format if the note control allow insert
+        /// </param>
+        ///<param name="allowEdit" type="Boolean">
+        /// A JavaScript boolean to format if the note control allow edit
+        /// </param>
+
         if (typeof jQuery == 'undefined') {
             alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
             return;
