@@ -70,15 +70,9 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <Content Include="xml\JQueryDependentOptionSetConfig.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="xml\JQueryFieldTooltipConfig.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="xml\JQueryLookupCustomFilterViewConfig.xml">
-      <SubType>Designer</SubType>
-    </Content>
+    <Content Include="xml\JQueryDependentOptionSetConfig.xml" />
+    <Content Include="xml\JQueryFieldTooltipConfig.xml" />
+    <Content Include="xml\JQueryLookupCustomFilterViewConfig.xml" />
     <Content Include="XrmServiceToolkitTest.aspx" />
   </ItemGroup>
   <ItemGroup>

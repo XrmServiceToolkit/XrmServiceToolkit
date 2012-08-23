@@ -269,16 +269,21 @@
         test("Test XrmServiceToolkit.Soap.Create() method to create a CRM record (contact)", function () {
 
             var createContact = new XrmServiceToolkit.Soap.BusinessEntity("contact");
-            createContact.attributes["firstname"] = "Diane";
-            createContact.attributes["lastname"] = "Morgan";
+            createContact.attributes["firstname"] = "Diane1";
+            createContact.attributes["lastname"] = "Morgan1";
             createContact.attributes["middlename"] = "<&>";   // Deliberate special characters to ensure that the toolkit can handle special characters correctly.
             createContact.attributes["gendercode"] = { value: 2, type: "OptionSetValue" };
             createContact.attributes["familystatuscode"] = { value: 1, type: "OptionSetValue" }; // Picklist : Single - 1
-            createContact.attributes["creditlimit"] = { value: 2, type: "Money" };
             createContact.attributes["birthdate"] = birthDate;
             createContact.attributes["donotemail"] = true;
             createContact.attributes["donotphone"] = false;
             createContact.attributes["parentcustomerid"] = { id: accountId, logicalName: "account", type: "EntityReference" };
+            
+            //overcome limitations of numbers with type specified....
+            createContact.attributes["numberofchildren"] = { value: 2, type: "int"};
+            createContact.attributes["exchangerate"] = {value: 1.5617, type: "decimal"};
+            createContact.attributes["address1_latitude"] = { value: 1.5617, type: "double" };
+            createContact.attributes["creditlimit"] = { value: 2, type: "Money" };
 
             contactId = XrmServiceToolkit.Soap.Create(createContact);
 

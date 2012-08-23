@@ -1294,7 +1294,7 @@ XrmServiceToolkit.Soap = function () {
                             value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
                             encodedValue = encodeValue(value);
                             var oType = (parseInt(encodedValue) == encodedValue) ? "c:int" : "c:decimal";
-                            xml.push('<b:value i:type="', oType, '" xmlns:c="http://schemas.microsoft.com/2003/10/Serialization/">');
+                            xml.push('<b:value i:type="', oType, '" xmlns:c="http://www.w3.org/2001/XMLSchema">');
                             xml.push(encodedValue, '</b:value>');
                             break;
 
@@ -2837,7 +2837,7 @@ XrmServiceToolkit.Extension = function () {
                                 dynamicValue = Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
                                 break;
                             case 'optionset':
-                                dynamicValue = (fieldValueType != null && fieldValueType == 'label') ? Xrm.Page.getAttribute($(dynamic).attr('name')).getValue().text : Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
+                                dynamicValue = (fieldValueType != null && fieldValueType == 'label') ? Xrm.Page.getAttribute($(dynamic).attr('name')).getSelectionOption().text : Xrm.Page.getAttribute($(dynamic).attr('name')).getValue();
                                 break;
                             case 'lookup':
                                 dynamicValue = (fieldValueType != null && fieldValueType == 'name') ? Xrm.Page.getAttribute($(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute($(dynamic).attr('name')).getValue()[0].id;
