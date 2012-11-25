@@ -197,19 +197,21 @@
             );
         });
 
-        test("Test XrmServiceToolkit.Rest.RetrieveMultiple(contact) method to get the contacts", function () {
+        test("Test XrmServiceToolkit.Rest.RetrieveMultiple(account) method to get the contacts", function () {
 
+            var counter = 0;
             XrmServiceToolkit.Rest.RetrieveMultiple(
-                "ContactSet",
-                "$select=ContactId, FullName",
+                "AccountSet",
+                "$select=AccountId, Name",
                 function (results) {
-                    ok(results.length > 0, results.length.toString() + " records should have been retrieved.");
+                    //ok(results.length > 0, results.length.toString() + " records should have been retrieved.");   
+                    counter += results.length;
                 },
                 function (error) {
                     equal(true, false, error.message);
                 },
                 function onComplete() {
-
+                    ok(counter > 0, counter.toString() + " records should have been retrieved.");
                 },
                 false
             );
@@ -269,21 +271,16 @@
         test("Test XrmServiceToolkit.Soap.Create() method to create a CRM record (contact)", function () {
 
             var createContact = new XrmServiceToolkit.Soap.BusinessEntity("contact");
-            createContact.attributes["firstname"] = "Diane1";
-            createContact.attributes["lastname"] = "Morgan1";
+            createContact.attributes["firstname"] = "Diane";
+            createContact.attributes["lastname"] = "Morgan";
             createContact.attributes["middlename"] = "<&>";   // Deliberate special characters to ensure that the toolkit can handle special characters correctly.
             createContact.attributes["gendercode"] = { value: 2, type: "OptionSetValue" };
             createContact.attributes["familystatuscode"] = { value: 1, type: "OptionSetValue" }; // Picklist : Single - 1
+            createContact.attributes["creditlimit"] = { value: 2, type: "Money" };
             createContact.attributes["birthdate"] = birthDate;
             createContact.attributes["donotemail"] = true;
             createContact.attributes["donotphone"] = false;
             createContact.attributes["parentcustomerid"] = { id: accountId, logicalName: "account", type: "EntityReference" };
-            
-            //overcome limitations of numbers with type specified....
-            createContact.attributes["numberofchildren"] = { value: 2, type: "int"};
-            createContact.attributes["exchangerate"] = {value: 1.5617, type: "decimal"};
-            createContact.attributes["address1_latitude"] = { value: 1.5617, type: "double" };
-            createContact.attributes["creditlimit"] = { value: 2, type: "Money" };
 
             contactId = XrmServiceToolkit.Soap.Create(createContact);
 
@@ -479,9 +476,22 @@
             ok(fetchedContacts.length >= 1, "at least there should be one matched contact record, which is what we just created");
         });
 
+        test("Test XrmServiceToolkit.Soap.QueryAll() method to retrieve all CRM records (account) using one criterion", function () {
+            var queryOptions = {
+                entityName: "account",
+                attributes: "statuscode",
+                values: 1,
+                columnSet: ["accountid"]
+            };
+            var fetchedAccounts = XrmServiceToolkit.Soap.QueryAll(queryOptions); // Retrieve all fields (BAD Practice) with no sorting
+
+            equal(true, true, fetchedAccounts.length.toString() + " records (account) have been returned");
+        });
+
+
         test("Test XrmServiceToolkit.Soap.SetState() method to set a CRM record's status", function () {
 
-            var response = XrmServiceToolkit.Soap.SetState("contact", "245DD529-8343-E111-8F5A-000C294FB247", 1, 2);
+            var response = XrmServiceToolkit.Soap.SetState("contact", contactId, 1, 2);
             ok(response == "SetState", "The contact can be deactivated. ");
 
         });

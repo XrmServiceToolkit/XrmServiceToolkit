@@ -5,7 +5,7 @@
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @current version : 1.3
+* @current version : 1.3.1
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -44,6 +44,15 @@
 *          2. JQueryXrmFieldTooltip: Create configurable tooltip for fields on CRM 2011 form
 *          3. JQueryXrmCustomFilterView: Create configurable ability to add custom filter view to crm 2011 lookup field on the form
 *          4. JQueryXrmFormatNotesControl: Format the notes control to allow insert, allow edit
+**********************************************************************************************************
+*   Version: 1.3.1
+*   Date: November, 2012
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       New Feature - A change of logic to increase peroformance when returning large number of records
+*       New Function - XrmServiceToolkit.Soap.QueryAll: Return all available records by query options (>5k+)
+*       New Fix - XrmServiceToolkit.Rest.RetrieveMultiple not returning records more than 50
+*       New Fix - XrmServiceToolkit.Soap.Business error when refering number fields like (int, double, float)     
+*       New Fix - XrmServiceToolkit.Soap not handling error message properly
 **********************************************************************************************************
 */
 
@@ -256,24 +265,24 @@ XrmServiceToolkit.Common = function () {
         /// The label of the section
         /// </param>
         /// <returns type="void" />
-         var tabs = Xrm.Page.ui.tabs;
-         for (var i = 0; i < tabs.getLength(); i++) {
-             var tab = tabs.get(i);
-             var sections = tab.sections;
-             for (var j = 0; j < sections.getLength(); j++) {
-                 var section = sections.get(j);
-                 if (section.getLabel().toLowerCase() == sectionLabel.toLowerCase()) {
+        var tabs = Xrm.Page.ui.tabs;
+        for (var i = 0; i < tabs.getLength(); i++) {
+            var tab = tabs.get(i);
+            var sections = tab.sections;
+            for (var j = 0; j < sections.getLength(); j++) {
+                var section = sections.get(j);
+                if (section.getLabel().toLowerCase() == sectionLabel.toLowerCase()) {
                     Xrm.Page.ui.controls.forEach(
                         function (control) {
                             if (control.getParent().getLabel() == sectionLabel && control.getControlType() != "subgrid") {
                                 control.setDisabled(true);
-                        }
-                    });
+                            }
+                        });
                     break;
-                 }
-             }
-         }
-     };
+                }
+            }
+        }
+    };
 
     // Toolkit's public static members
     return {
@@ -363,20 +372,16 @@ XrmServiceToolkit.Rest = function () {
         /// Private function to the context object.
         ///</summary>
         ///<returns>Context</returns>
-        var oContext = null;
+        var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
         }
         else {
             if (typeof Xrm != "undefined") {
-                if (typeof Xrm != "undefined") {
-                    oContext = Xrm.Page.context;
-                }
-                else {
-                    if (typeof window.parent.Xrm != "undefined") {
-                        oContext = window.parent.Xrm.Page.context;
-                    }
-                }
+                oContext = Xrm.Page.context;
+            }
+            else if (typeof window.parent.Xrm != "undefined") {
+                oContext = window.parent.Xrm.Page.context;
             }
             else {
                 throw new Error("Context is not available.");
@@ -804,7 +809,7 @@ XrmServiceToolkit.Rest = function () {
                     successCallback(returned.results);
                     if (returned.__next != null) {
                         var queryOptions = returned.__next.substring((oDataPath() + type).length);
-                        retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, onComplete);
+                        retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, onComplete, async);
                     }
                     else {
                         onComplete();
@@ -969,6 +974,7 @@ XrmServiceToolkit.Rest = function () {
 } ();
 
 XrmServiceToolkit.Soap = function () {
+
     var htmlEncode = function (s) {
         if (s == null || s == "") return s;
         for (var count = 0, buffer = "", hEncode = "", cnt = 0; cnt < s.length; cnt++) {
@@ -1059,20 +1065,16 @@ XrmServiceToolkit.Soap = function () {
         /// Private function to the context object.
         ///</summary>
         ///<returns>Context</returns>
-        var oContext = null;
+        var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
         }
         else {
             if (typeof Xrm != "undefined") {
-                if (typeof Xrm != "undefined") {
-                    oContext = Xrm.Page.context;
-                }
-                else {
-                    if (typeof window.parent.Xrm != "undefined") {
-                        oContext = window.parent.Xrm.Page.context;
-                    }
-                }
+                oContext = Xrm.Page.context;
+            }
+            else if (typeof window.parent.Xrm != "undefined") {
+                oContext = window.parent.Xrm.Page.context;
             }
             else {
                 throw new Error("Context is not available.");
@@ -1323,41 +1325,43 @@ XrmServiceToolkit.Soap = function () {
         * @param {object} resultNode The XML node returned from CRM Web Service's Fetch, Retrieve, RetrieveMultiple messages.
         */
         deserialize: function (resultNode) {
-            if (typeof jQuery == 'undefined') {
-                alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
-                return;
-            }
-
             var obj = new Object();
-            var resultNodes = resultNode.children();
+            var resultNodes = resultNode.childNodes;
 
             for (var j = 0; j < resultNodes.length; j++) {
                 var k;
                 var sKey;
-                switch (resultNodes.eq(j).prop("nodeName")) {
-                    case "a:Attributes":
+                switch (resultNodes[j].baseName) {
+                    case "Attributes":
                         var attr = resultNodes[j];
-                        for (k = 0; k < $(attr).children().length; k++) {
-                            // Establish the Key for the Attribute
-                            sKey = $(attr).children().eq(k).children(':first').text();
-                            var sType = $(attr).children().eq(k).children().eq(1).attr('i:type');
+                        for (k = 0; k < attr.childNodes.length; k++) {
 
+                            // Establish the Key for the Attribute
+                            sKey = attr.childNodes[k].firstChild.text;
+                            var sType = '';
+
+                            // Determine the Type of Attribute value we should expect
+                            for (var l = 0; l < attr.childNodes[k].childNodes[1].attributes.length; l++) {
+                                if (attr.childNodes[k].childNodes[1].attributes[l].baseName == 'type') {
+                                    sType = attr.childNodes[k].childNodes[1].attributes[l].text;
+                                }
+                            }
                             var entRef;
                             var entCv;
                             switch (sType) {
                                 case "a:OptionSetValue":
                                     var entOsv = new xrmOptionSetValue();
                                     entOsv.type = sType.replace('a:', '');
-                                    entOsv.value = parseInt($(attr).children().eq(k).children().eq(1).text());
+                                    entOsv.value = parseInt(attr.childNodes[k].childNodes[1].text);
                                     obj[sKey] = entOsv;
                                     break;
 
                                 case "a:EntityReference":
                                     entRef = new xrmEntityReference();
                                     entRef.type = sType.replace('a:', '');
-                                    entRef.id = $(attr).children().eq(k).children().eq(1).children().eq(0).text();
-                                    entRef.logicalName = $(attr).children().eq(k).children().eq(1).children().eq(1).text();
-                                    entRef.name = $(attr).children().eq(k).children().eq(1).children().eq(2).text();
+                                    entRef.id = attr.childNodes[k].childNodes[1].childNodes[0].text;
+                                    entRef.logicalName = attr.childNodes[k].childNodes[1].childNodes[1].text;
+                                    entRef.name = attr.childNodes[k].childNodes[1].childNodes[2].text;
                                     obj[sKey] = entRef;
                                     break;
 
@@ -1367,14 +1371,14 @@ XrmServiceToolkit.Soap = function () {
 
                                     //get all party items....
                                     var items = [];
-                                    for (var y = 0; y < $(attr).children().eq(k).children().eq(1).children().eq(0).children().length; y++) {
-                                        var itemNodes = $(attr).children().eq(k).children().eq(1).children().eq(0).children().eq(y).children().eq(0).children();
+                                    for (var y = 0; y < attr.childNodes[k].childNodes[1].childNodes[0].childNodes.length; y++) {
+                                        var itemNodes = attr.childNodes[k].childNodes[1].childNodes[0].childNodes[y].childNodes[0].childNodes;
                                         for (var z = 0; z < itemNodes.length; z++) {
-                                            if (itemNodes.eq(z).children().eq(0).text() == "partyid") {
+                                            if (itemNodes[z].childNodes[0].text == "partyid") {
                                                 var itemRef = new xrmEntityReference();
-                                                itemRef.id = itemNodes.eq(z).children().eq(1).children().eq(0).text();
-                                                itemRef.logicalName = itemNodes.eq(z).children().eq(1).children().eq(1).text();
-                                                itemRef.name = itemNodes.eq(z).children().eq(1).children().eq(2).text();
+                                                itemRef.id = itemNodes[z].childNodes[1].childNodes[0].text;
+                                                itemRef.logicalName = itemNodes[z].childNodes[1].childNodes[1].text;
+                                                itemRef.name = itemNodes[z].childNodes[1].childNodes[2].text;
                                                 items[y] = itemRef;
                                             }
                                         }
@@ -1386,7 +1390,7 @@ XrmServiceToolkit.Soap = function () {
                                 case "a:Money":
                                     entCv = new xrmValue();
                                     entCv.type = sType.replace('a:', '');
-                                    entCv.value = parseFloat($(attr).children().eq(k).children().eq(1).text());
+                                    entCv.value = parseFloat(attr.childNodes[k].childNodes[1].text);
                                     obj[sKey] = entCv;
                                     break;
 
@@ -1394,19 +1398,19 @@ XrmServiceToolkit.Soap = function () {
                                     entCv = new xrmValue();
                                     entCv.type = sType.replace('c:', '').replace('a:', '');
                                     if (entCv.type == "int") {
-                                        entCv.value = parseInt($(attr).children().eq(k).children().eq(1).text());
+                                        entCv.value = parseInt(attr.childNodes[k].childNodes[1].text);
                                     }
-                                    else if (entCv.type == "decimal") {
-                                        entCv.value = parseFloat($(attr).children().eq(k).children().eq(1).text());
+                                    else if (entCv.type == "decimal" || entCv.type == "double") {
+                                        entCv.value = parseFloat(attr.childNodes[k].childNodes[1].text);
                                     }
                                     else if (entCv.type == "dateTime") {
-                                        entCv.value = Date.parse($(attr).children().eq(k).children().eq(1).text());
+                                        entCv.value = new Date(attr.childNodes[k].childNodes[1].text);
                                     }
                                     else if (entCv.type == "boolean") {
-                                        entCv.value = ($(attr).children().eq(k).children().eq(1).text() == 'false') ? false : true;
+                                        entCv.value = (attr.childNodes[k].childNodes[1].text == 'false') ? false : true;
                                     }
                                     else {
-                                        entCv.value = $(attr).children().eq(k).children().eq(1).text();
+                                        entCv.value = attr.childNodes[k].childNodes[1].text;
                                     }
                                     obj[sKey] = entCv;
                                     break;
@@ -1415,21 +1419,21 @@ XrmServiceToolkit.Soap = function () {
                         this.attributes = obj;
                         break;
 
-                    case "a:Id":
-                        this.id = $(resultNodes).eq(j).text();
+                    case "Id":
+                        this.id = resultNodes[j].text;
                         break;
 
-                    case "a:LogicalName":
-                        this.logicalName = $(resultNodes).eq(j).text();
+                    case "LogicalName":
+                        this.logicalName = resultNodes[j].text;
                         break;
 
-                    case "a:FormattedValues":
-                        var foVal = $(resultNodes).eq(j);
+                    case "FormattedValues":
+                        var foVal = resultNodes[j];
 
-                        for (k = 0; k < foVal.children().length; k++) {
+                        for (k = 0; k < foVal.childNodes.length; k++) {
                             // Establish the Key, we are going to fill in the formatted value of the already found attribute
-                            sKey = foVal.children().eq(k).children().eq(0).text();
-                            this.attributes[sKey].formattedValue = foVal.children().eq(k).children().eq(1).text();
+                            sKey = foVal.childNodes[k].firstChild.text;
+                            this.attributes[sKey].formattedValue = foVal.childNodes[k].childNodes[1].text;
                             if (isNaN(this.attributes[sKey].value) && this.attributes[sKey].type == "dateTime") {
                                 this.attributes[sKey].value = new Date(this.attributes[sKey].formattedValue);
                             }
@@ -1528,10 +1532,6 @@ XrmServiceToolkit.Soap = function () {
     // ReSharper restore NotAllPathsReturnValue
 
     var processResponse = function (responseXml, responseText) {
-        if (typeof jQuery == 'undefined') {
-            throw new Error('jQuery is not loaded.\nPlease ensure that jQuery is included\n as webresource in the form load.');
-        }
-
         if (responseXml === null || responseXml.xml === null || responseXml.xml === "") {
             if (responseText !== null && responseText !== "")
                 throw new Error(responseText);
@@ -1540,11 +1540,11 @@ XrmServiceToolkit.Soap = function () {
         }
 
         // Report the error if occurred
-        var error = $(responseXml).children("error").text();
-        var faultString = $(responseXml).children("faultstring").text();
+        var error = $(responseXml).find("error").text();
+        var faultString = $(responseXml).find("faultstring").text();
 
         if (error != '' || faultString != '') {
-            throw new Error(error !== null ? $(responseXml).children('description').text() : faultString);
+            throw new Error(error !== '' ? $(responseXml).find('description').text() : faultString);
         }
 
         // Load responseXML and return as an XML object
@@ -1687,21 +1687,22 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
-            var fetchResult = $(resultXml).find("a\\:Entities").eq(0);
 
-            var results = [];
 
-            for (var i = 0; i < fetchResult.children().length; i++) {
+            var fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
+            var fetchResults = [];
+
+            for (var i = 0; i < fetchResult.childNodes.length; i++) {
                 var entity = new businessEntity();
-                var deserializeEntity = fetchResult.children().eq(i);
-                entity.deserialize(deserializeEntity);
-                results[i] = entity;
+
+                entity.deserialize(fetchResult.childNodes[i]);
+                fetchResults[i] = entity;
             }
 
             if (!async)
-                return results;
+                return fetchResults;
             else
-                callback(results);
+                callback(fetchResults);
             // ReSharper disable NotAllPathsReturnValue
         });
         // ReSharper restore NotAllPathsReturnValue
@@ -1755,7 +1756,7 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(msgBody, "Retrieve", !!callback, function (resultXml) {
-            var retrieveResult = $(resultXml).find("RetrieveResult").eq(0);
+            var retrieveResult = $(resultXml).find("RetrieveResult").eq(0)[0];
             var entity = new businessEntity();
             entity.deserialize(retrieveResult);
 
@@ -1787,20 +1788,20 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(msgBody, "RetrieveMultiple", async, function (resultXml) {
-            var resultNodes = $(resultXml).find("a\\:Entities").eq(0);
-            var results = [];
+            var resultNodes = $(resultXml).find("a\\:Entities").eq(0)[0];
+            var retriveMultipleResults = [];
 
-            for (var i = 0; i < resultNodes.children().length; i++) {
+            for (var i = 0; i < resultNodes.childNodes.length; i++) {
                 var entity = new businessEntity();
 
-                entity.deserialize(resultNodes.children().eq(i));
-                results[i] = entity;
+                entity.deserialize(resultNodes.childNodes[i]);
+                retriveMultipleResults[i] = entity;
             }
 
             if (!async)
-                return results;
+                return retriveMultipleResults;
             else
-                callback(results);
+                callback(retriveMultipleResults);
             // ReSharper disable NotAllPathsReturnValue
         });
         // ReSharper restore NotAllPathsReturnValue
@@ -1875,6 +1876,144 @@ XrmServiceToolkit.Soap = function () {
                 ].join("");
 
         return fetch(xml, callback);
+    };
+
+    var fetchMore = function (queryOptions, pageNumber, pageCookie, fetchResults) {
+        var entityName = queryOptions.entityName;
+        var attributes = queryOptions.attributes;
+        var values = queryOptions.values;
+        var columnSet = queryOptions.columnSet;
+        var orderBy = queryOptions.orderBy || '';
+
+        attributes = isArray(attributes) ? attributes : [attributes];
+        values = isArray(values) ? values : [values];
+        orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
+        columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
+
+        for (var i = 0; i < values.length; i++) {
+            values[i] = encodeValue(values[i]);
+        }
+
+        //Build new query
+        var moreFetchXml =
+                [
+                    "<fetch mapping='logical' page='" + pageNumber + "' count='5000' paging-cookie='" + pageCookie + "'>",
+                    "   <entity name='", entityName, "'>",
+                           joinArray("<attribute name='", columnSet, "' />"),
+                           joinArray("<order attribute='", orderBy, "' />"),
+                    "      <filter>",
+                              joinConditionPair(attributes, values),
+                    "      </filter>",
+                    "   </entity>",
+                    "</fetch>"
+                ].join("");
+
+        var moreMsgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
+                            "<a:Query>" +
+                                ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(moreFetchXml) : crmXmlEncode(moreFetchXml)) +
+                            "</a:Query>" +
+                        "</query>";
+
+
+        return doRequest(moreMsgBody, "RetrieveMultiple", false, function (moreResultXml) {
+            var newFetchResult = $(moreResultXml).find("a\\:Entities").eq(0)[0];
+            var newMoreRecords = $(moreResultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
+            var newPageCookie = $(moreResultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+
+            for (var iii = 0; iii < newFetchResult.childNodes.length; iii++) {
+                var entity = new businessEntity();
+
+                entity.deserialize(newFetchResult.childNodes[iii]);
+                fetchResults.push(entity);
+            }
+
+            if (newMoreRecords) {
+                pageNumber += 1;
+                fetchMore(queryOptions, pageNumber, newPageCookie, fetchResults);
+            }
+        });
+    };
+
+    var queryAll = function (queryOptions, callback) {
+        ///<summary>
+        /// Sends synchronous/asynchronous request to do a queryAll request. This is to return all records (>5k+).
+        /// Consider Performance impact when using this method.
+        ///</summary>
+        ///<param name="queryOptions" type="Object">
+        /// A JavaScript Object with properties corresponding to the queryByAttribute Criteria
+        /// that are valid for queryByAttribute operations.
+        /// queryOptions.entityName is a string represents the name of the entity
+        /// queryOptions.attributes is a array represents the attributes of the entity to query
+        /// queryOptions.values is a array represents the values of the attributes to query
+        /// queryOptions.columnSet is a array represents the attributes of the entity to return
+        /// queryOptions.orderBy is a array represents the oder conditons of the results
+        /// </param>
+        ///<param name="callback" type="Function">
+        /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
+        /// </param>
+        var entityName = queryOptions.entityName;
+        var attributes = queryOptions.attributes;
+        var values = queryOptions.values;
+        var columnSet = queryOptions.columnSet;
+        var orderBy = queryOptions.orderBy || '';
+
+        attributes = isArray(attributes) ? attributes : [attributes];
+        values = isArray(values) ? values : [values];
+        orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
+        columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
+
+        for (var i = 0; i < values.length; i++) {
+            values[i] = encodeValue(values[i]);
+        }
+
+        var fetchXml =
+                [
+                    "<fetch mapping='logical'>",
+                    "   <entity name='", entityName, "'>",
+                           joinArray("<attribute name='", columnSet, "' />"),
+                           joinArray("<order attribute='", orderBy, "' />"),
+                    "      <filter>",
+                              joinConditionPair(attributes, values),
+                    "      </filter>",
+                    "   </entity>",
+                    "</fetch>"
+                ].join("");
+
+        var msgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
+                            "<a:Query>" +
+                                ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(fetchXml) : crmXmlEncode(fetchXml)) +
+                            "</a:Query>" +
+                        "</query>";
+        var async = !!callback;
+
+        return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
+
+            //Logic here is inspired by http://nishantrana.wordpress.com/2012/09/11/paging-cookie-is-required-when-trying-to-retrieve-a-set-of-records-on-any-high-pages-error-in-crm-2011/
+            
+            var fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
+            var moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
+            var pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;'); ;
+
+            var fetchResults = [];
+
+            for (var ii = 0; ii < fetchResult.childNodes.length; ii++) {
+                var entity = new businessEntity();
+
+                entity.deserialize(fetchResult.childNodes[ii]);
+                fetchResults.push(entity);
+            }
+
+            if (moreRecords) {
+                var pageNumber = 2;
+                fetchMore(queryOptions, pageNumber, pageCookie, fetchResults);
+            }
+
+            if (!async)
+                return fetchResults;
+            else
+                callback(fetchResults);
+            // ReSharper disable NotAllPathsReturnValue
+        });
     };
 
     var setState = function (entityName, id, stateCode, statusCode, callback) {
@@ -2525,6 +2664,7 @@ XrmServiceToolkit.Soap = function () {
         Update: sUpdate,
         Delete: sDelete,
         QueryByAttribute: queryByAttribute,
+        QueryAll: queryAll,
         SetState: setState,
         Associate: associate,
         Disassociate: disassociate,
