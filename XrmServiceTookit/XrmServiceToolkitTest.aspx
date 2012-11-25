@@ -10,6 +10,15 @@
   <script type="text/javascript" src="Scripts/helper/XrmServiceToolkit.js"></script>
   <script type="text/javascript">
 
+/**
+* MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
+* @author Jaimie Ji
+* @current version : 1.3.1
+
+* Credits:
+*   The idea of this library and Unit Testing was inspired by Daniel Cai's CrmWebServiceToolkit.
+* Date: November, 2012
+*/
     var guidExpr = /^(\{)?([0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})(\})?$/;
     var contactId;
     var birthDate = new Date(1955, 2, 20);
