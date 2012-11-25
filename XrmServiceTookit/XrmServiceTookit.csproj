@@ -55,6 +55,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Scripts\entities\account.js" />
     <Content Include="Scripts\helper\jquery.js" />
     <Content Include="Scripts\helper\json2.js" />
     <Content Include="Scripts\helper\PageData.js" />
@@ -69,14 +70,15 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <Content Include="xml\JQueryDependentOptionSetConfig.xml" />
+    <Content Include="xml\JQueryFieldTooltipConfig.xml" />
+    <Content Include="xml\JQueryLookupCustomFilterViewConfig.xml" />
     <Content Include="XrmServiceToolkitTest.aspx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="xml\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
   <ProjectExtensions>
