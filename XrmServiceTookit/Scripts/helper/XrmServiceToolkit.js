@@ -1923,8 +1923,7 @@ XrmServiceToolkit.Soap = function () {
         return doRequest(moreMsgBody, "RetrieveMultiple", false, function (moreResultXml) {
             var newFetchResult = $(moreResultXml).find("a\\:Entities").eq(0)[0];
             var newMoreRecords = $(moreResultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-            var newPageCookie = $(moreResultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
-
+          
             for (var iii = 0; iii < newFetchResult.childNodes.length; iii++) {
                 var entity = new businessEntity();
 
@@ -1934,6 +1933,7 @@ XrmServiceToolkit.Soap = function () {
 
             if (newMoreRecords) {
                 pageNumber += 1;
+                var newPageCookie = $(moreResultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
                 fetchMore(queryOptions, pageNumber, newPageCookie, fetchResults);
             }
         });

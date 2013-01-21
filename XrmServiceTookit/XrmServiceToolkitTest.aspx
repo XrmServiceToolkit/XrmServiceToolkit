@@ -13,7 +13,7 @@
 /**
 * MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
 * @author Jaimie Ji
-* @current version : 1.3.1
+* @current version : 1.3.2
 
 * Credits:
 *   The idea of this library and Unit Testing was inspired by Daniel Cai's CrmWebServiceToolkit.
