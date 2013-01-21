@@ -59,6 +59,7 @@
     <Content Include="Scripts\helper\jquery.js" />
     <Content Include="Scripts\helper\json2.js" />
     <Content Include="Scripts\helper\PageData.js" />
+    <Content Include="Scripts\helper\TestPage.js" />
     <Content Include="Scripts\helper\XrmPageTemplate.js" />
     <Content Include="Scripts\helper\XrmServiceToolkit.js" />
     <Content Include="Scripts\qunit\qunit.css" />

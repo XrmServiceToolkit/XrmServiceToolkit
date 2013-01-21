@@ -5,7 +5,7 @@
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @current version : 1.3.1
+* @current version : 1.3.2
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -53,6 +53,11 @@
 *       New Fix - XrmServiceToolkit.Rest.RetrieveMultiple not returning records more than 50
 *       New Fix - XrmServiceToolkit.Soap.Business error when refering number fields like (int, double, float)     
 *       New Fix - XrmServiceToolkit.Soap not handling error message properly
+**********************************************************************************************************
+*   Version: 1.3.2
+*   Date: January, 2013
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
+*       New Fix - XrmServiceToolkit.Soap cross browser support to initialize soap service
 **********************************************************************************************************
 */
 
@@ -1331,19 +1336,19 @@ XrmServiceToolkit.Soap = function () {
             for (var j = 0; j < resultNodes.length; j++) {
                 var k;
                 var sKey;
-                switch (resultNodes[j].baseName) {
-                    case "Attributes":
+                switch (resultNodes[j].nodeName) {
+                    case "a:Attributes":
                         var attr = resultNodes[j];
                         for (k = 0; k < attr.childNodes.length; k++) {
 
                             // Establish the Key for the Attribute
-                            sKey = attr.childNodes[k].firstChild.text;
+                            sKey = $(attr.childNodes[k].firstChild).text();
                             var sType = '';
 
                             // Determine the Type of Attribute value we should expect
                             for (var l = 0; l < attr.childNodes[k].childNodes[1].attributes.length; l++) {
-                                if (attr.childNodes[k].childNodes[1].attributes[l].baseName == 'type') {
-                                    sType = attr.childNodes[k].childNodes[1].attributes[l].text;
+                                if (attr.childNodes[k].childNodes[1].attributes[l].nodeName == 'i:type') {
+                                    sType = $(attr.childNodes[k].childNodes[1].attributes[l]).val();
                                 }
                             }
                             var entRef;
@@ -1352,16 +1357,16 @@ XrmServiceToolkit.Soap = function () {
                                 case "a:OptionSetValue":
                                     var entOsv = new xrmOptionSetValue();
                                     entOsv.type = sType.replace('a:', '');
-                                    entOsv.value = parseInt(attr.childNodes[k].childNodes[1].text);
+                                    entOsv.value = parseInt($(attr.childNodes[k].childNodes[1]).text());
                                     obj[sKey] = entOsv;
                                     break;
 
                                 case "a:EntityReference":
                                     entRef = new xrmEntityReference();
                                     entRef.type = sType.replace('a:', '');
-                                    entRef.id = attr.childNodes[k].childNodes[1].childNodes[0].text;
-                                    entRef.logicalName = attr.childNodes[k].childNodes[1].childNodes[1].text;
-                                    entRef.name = attr.childNodes[k].childNodes[1].childNodes[2].text;
+                                    entRef.id = $(attr.childNodes[k].childNodes[1].childNodes[0]).text();
+                                    entRef.logicalName = $(attr.childNodes[k].childNodes[1].childNodes[1]).text();
+                                    entRef.name = $(attr.childNodes[k].childNodes[1].childNodes[2]).text();
                                     obj[sKey] = entRef;
                                     break;
 
@@ -1376,9 +1381,9 @@ XrmServiceToolkit.Soap = function () {
                                         for (var z = 0; z < itemNodes.length; z++) {
                                             if (itemNodes[z].childNodes[0].text == "partyid") {
                                                 var itemRef = new xrmEntityReference();
-                                                itemRef.id = itemNodes[z].childNodes[1].childNodes[0].text;
-                                                itemRef.logicalName = itemNodes[z].childNodes[1].childNodes[1].text;
-                                                itemRef.name = itemNodes[z].childNodes[1].childNodes[2].text;
+                                                itemRef.id = $(itemNodes[z].childNodes[1].childNodes[0]).text();
+                                                itemRef.logicalName = $(itemNodes[z].childNodes[1].childNodes[1]).text();
+                                                itemRef.name = $(itemNodes[z].childNodes[1].childNodes[2]).text();
                                                 items[y] = itemRef;
                                             }
                                         }
@@ -1390,7 +1395,7 @@ XrmServiceToolkit.Soap = function () {
                                 case "a:Money":
                                     entCv = new xrmValue();
                                     entCv.type = sType.replace('a:', '');
-                                    entCv.value = parseFloat(attr.childNodes[k].childNodes[1].text);
+                                    entCv.value = parseFloat($(attr.childNodes[k].childNodes[1]).text());
                                     obj[sKey] = entCv;
                                     break;
 
@@ -1398,19 +1403,19 @@ XrmServiceToolkit.Soap = function () {
                                     entCv = new xrmValue();
                                     entCv.type = sType.replace('c:', '').replace('a:', '');
                                     if (entCv.type == "int") {
-                                        entCv.value = parseInt(attr.childNodes[k].childNodes[1].text);
+                                        entCv.value = parseInt($(attr.childNodes[k].childNodes[1]).text());
                                     }
                                     else if (entCv.type == "decimal" || entCv.type == "double") {
-                                        entCv.value = parseFloat(attr.childNodes[k].childNodes[1].text);
+                                        entCv.value = parseFloat($(attr.childNodes[k].childNodes[1]).text());
                                     }
                                     else if (entCv.type == "dateTime") {
-                                        entCv.value = new Date(attr.childNodes[k].childNodes[1].text);
+                                        entCv.value = new Date($(attr.childNodes[k].childNodes[1]).text());
                                     }
                                     else if (entCv.type == "boolean") {
-                                        entCv.value = (attr.childNodes[k].childNodes[1].text == 'false') ? false : true;
+                                        entCv.value = ($(attr.childNodes[k].childNodes[1]).text() == 'false') ? false : true;
                                     }
                                     else {
-                                        entCv.value = attr.childNodes[k].childNodes[1].text;
+                                        entCv.value = $(attr.childNodes[k].childNodes[1]).text();
                                     }
                                     obj[sKey] = entCv;
                                     break;
@@ -1419,21 +1424,21 @@ XrmServiceToolkit.Soap = function () {
                         this.attributes = obj;
                         break;
 
-                    case "Id":
-                        this.id = resultNodes[j].text;
+                    case "a:Id":
+                        this.id = $(resultNodes[j]).text();
                         break;
 
-                    case "LogicalName":
-                        this.logicalName = resultNodes[j].text;
+                    case "a:LogicalName":
+                        this.logicalName = $(resultNodes[j]).text();
                         break;
 
-                    case "FormattedValues":
+                    case "a:FormattedValues":
                         var foVal = resultNodes[j];
 
                         for (k = 0; k < foVal.childNodes.length; k++) {
                             // Establish the Key, we are going to fill in the formatted value of the already found attribute
-                            sKey = foVal.childNodes[k].firstChild.text;
-                            this.attributes[sKey].formattedValue = foVal.childNodes[k].childNodes[1].text;
+                            sKey = $(foVal.childNodes[k].firstChild).text();
+                            this.attributes[sKey].formattedValue = $(foVal.childNodes[k].childNodes[1]).text();
                             if (isNaN(this.attributes[sKey].value) && this.attributes[sKey].type == "dateTime") {
                                 this.attributes[sKey].value = new Date(this.attributes[sKey].formattedValue);
                             }
@@ -1992,8 +1997,7 @@ XrmServiceToolkit.Soap = function () {
             
             var fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
             var moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-            var pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;'); ;
-
+  
             var fetchResults = [];
 
             for (var ii = 0; ii < fetchResult.childNodes.length; ii++) {
@@ -2005,6 +2009,7 @@ XrmServiceToolkit.Soap = function () {
 
             if (moreRecords) {
                 var pageNumber = 2;
+                var pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;'); 
                 fetchMore(queryOptions, pageNumber, pageCookie, fetchResults);
             }
 
