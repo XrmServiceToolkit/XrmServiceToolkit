@@ -75,6 +75,7 @@
     <Content Include="xml\JQueryFieldTooltipConfig.xml" />
     <Content Include="xml\JQueryLookupCustomFilterViewConfig.xml" />
     <Content Include="XrmServiceToolkitTest.aspx" />
+    <Content Include="XrmServiceToolkitTestPage.htm" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

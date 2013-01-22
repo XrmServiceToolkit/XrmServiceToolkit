@@ -5,7 +5,7 @@
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @current version : 1.3.2
+* @current version : 1.4.0(beta)
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -58,6 +58,12 @@
 *   Date: January, 2013
 *       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
 *       New Fix - XrmServiceToolkit.Soap cross browser support to initialize soap service
+**********************************************************************************************************
+*   Version: 1.4.0(beta)
+*   Date: January, 2013
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
+*       Feature: Add Cross Browser Support for RU12
+*       Tested Platform: IE9, IE10, Chrome Version 24.0.1312.56 m, Firefox 18.0.1
 **********************************************************************************************************
 */
 
@@ -1529,7 +1535,7 @@ XrmServiceToolkit.Soap = function () {
             };
         }
         else {
-            var result = processResponse(req.responseXML);
+            var result = processResponse(req.responseXML, req.responseText);
             return !!internalCallback ? internalCallback(result) : result;
         }
         // ReSharper disable NotAllPathsReturnValue
@@ -1537,23 +1543,39 @@ XrmServiceToolkit.Soap = function () {
     // ReSharper restore NotAllPathsReturnValue
 
     var processResponse = function (responseXml, responseText) {
-        if (responseXml === null || responseXml.xml === null || responseXml.xml === "") {
-            if (responseText !== null && responseText !== "")
+        var error;
+        var faultString;
+        var xmlDoc;
+        if (responseXml === null || typeof responseXml === 'undefined' || responseXml.xml === null || responseXml.xml === "") {
+            if (responseText !== null && responseText !== "") {
                 throw new Error(responseText);
+            }
             else
                 throw new Error("No response received from the server. ");
         }
 
         // Report the error if occurred
-        var error = $(responseXml).find("error").text();
-        var faultString = $(responseXml).find("faultstring").text();
 
-        if (error != '' || faultString != '') {
-            throw new Error(error !== '' ? $(responseXml).find('description').text() : faultString);
-        }
 
         // Load responseXML and return as an XML object
-        var xmlDoc = xmlParser(xmlToString(responseXml));
+        if (typeof responseXml.xml === 'undefined') {
+            error = $(responseText).find("error").text();
+            faultString = $(responseText).find("faultstring").text();
+            if (error != '' || faultString != '') {
+                throw new Error(error !== '' ? $(responseText).find('description').text() : faultString);
+            }
+
+            xmlDoc = xmlParser(responseText);
+        } else {
+            error = $(responseXml).find("error").text();
+            faultString = $(responseXml).find("faultstring").text();
+            if (error != '' || faultString != '') {
+                throw new Error(error !== '' ? $(responseXml).find('description').text() : faultString);
+            }
+
+            xmlDoc = xmlParser(xmlToString(responseXml));
+        }
+
         return xmlDoc;
     };
 
@@ -1602,7 +1624,7 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(request, "Update", async, function (resultXml) {
-            var response = $(resultXml).children("#UpdateResponse").eq(0);
+            var response = $(resultXml).find("UpdateResponse").eq(0);
             var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
 
             if (!async)
@@ -1638,7 +1660,7 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(request, "Delete", async, function (resultXml) {
-            var response = $(resultXml).children("#DeleteResponse").eq(0);
+            var response = $(resultXml).find("DeleteResponse").eq(0);
             var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
 
             if (!async)
@@ -1668,9 +1690,7 @@ XrmServiceToolkit.Soap = function () {
                 return resultXml;
             else
                 callback(resultXml);
-            // ReSharper disable NotAllPathsReturnValue
         });
-        // ReSharper restore NotAllPathsReturnValue
     };
 
     var fetch = function (fetchXml, callback) {
@@ -1692,9 +1712,13 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
+            var fetchResult;
+            if ($(resultXml).find("a\\:Entities").length != 0) {
+                fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
+            } else {
+                fetchResult = $(resultXml).find("Entities").eq(0)[0]; //chrome could not load node
+            }
 
-
-            var fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
             var fetchResults = [];
 
             for (var i = 0; i < fetchResult.childNodes.length; i++) {
@@ -1793,7 +1817,13 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(msgBody, "RetrieveMultiple", async, function (resultXml) {
-            var resultNodes = $(resultXml).find("a\\:Entities").eq(0)[0];
+            var resultNodes;
+
+            if ($(resultXml).find("a\\:Entities").length != 0) {
+                resultNodes = $(resultXml).find("a\\:Entities").eq(0)[0];
+            } else {
+                resultNodes = $(resultXml).find("Entities").eq(0)[0]; //chrome could not load node properly
+            }
             var retriveMultipleResults = [];
 
             for (var i = 0; i < resultNodes.childNodes.length; i++) {
@@ -1921,9 +1951,20 @@ XrmServiceToolkit.Soap = function () {
 
 
         return doRequest(moreMsgBody, "RetrieveMultiple", false, function (moreResultXml) {
-            var newFetchResult = $(moreResultXml).find("a\\:Entities").eq(0)[0];
-            var newMoreRecords = $(moreResultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-          
+            var newFetchResult;
+            if ($(moreResultXml).find("a\\:Entities").length != 0) {
+                newFetchResult = $(moreResultXml).find("a\\:Entities").eq(0)[0];
+            } else {
+                newFetchResult = $(moreResultXml).find("Entities").eq(0)[0]; //chrome
+            }
+
+            var newMoreRecords;
+            if ($(moreResultXml).find("a\\:MoreRecords").length != 0) {
+                newMoreRecords = $(moreResultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
+            } else {
+                newMoreRecords = $(moreResultXml).find("MoreRecords").eq(0)[0].firstChild.text === "true"; //chrome
+            }
+
             for (var iii = 0; iii < newFetchResult.childNodes.length; iii++) {
                 var entity = new businessEntity();
 
@@ -1933,7 +1974,13 @@ XrmServiceToolkit.Soap = function () {
 
             if (newMoreRecords) {
                 pageNumber += 1;
-                var newPageCookie = $(moreResultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                var newPageCookie;
+                if ($(moreResultXml).find("a\\:PagingCookie").length != 0) {
+                    newPageCookie = $(moreResultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                } else {
+                    newPageCookie = $(moreResultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                }
+
                 fetchMore(queryOptions, pageNumber, newPageCookie, fetchResults);
             }
         });
@@ -1994,10 +2041,22 @@ XrmServiceToolkit.Soap = function () {
         return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
 
             //Logic here is inspired by http://nishantrana.wordpress.com/2012/09/11/paging-cookie-is-required-when-trying-to-retrieve-a-set-of-records-on-any-high-pages-error-in-crm-2011/
-            
-            var fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
-            var moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-  
+
+            var fetchResult;
+            var moreRecords;
+
+            if ($(resultXml).find("a\\:Entities").length != 0) {
+                fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
+            } else {
+                fetchResult = $(resultXml).find("Entities").eq(0)[0]; //chrome
+            }
+
+            if ($(resultXml).find("a\\:MoreRecords").length != 0) {
+                moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
+            } else {
+                moreRecords = $(resultXml).find("MoreRecords").eq(0)[0].firstChild.text === "true"; //chrome
+            }
+
             var fetchResults = [];
 
             for (var ii = 0; ii < fetchResult.childNodes.length; ii++) {
@@ -2009,7 +2068,12 @@ XrmServiceToolkit.Soap = function () {
 
             if (moreRecords) {
                 var pageNumber = 2;
-                var pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;'); 
+                var pageCookie;
+                if ($(resultXml).find("a\\:PagingCookie").length != 0) {
+                    pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                } else {
+                    pageCookie = $(resultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                }
                 fetchMore(queryOptions, pageNumber, pageCookie, fetchResults);
             }
 
@@ -2273,8 +2337,12 @@ XrmServiceToolkit.Soap = function () {
                         "<a:RequestName>WhoAmI</a:RequestName>" +
                       "</request>";
         var xmlDoc = doRequest(request, "Execute");
+        if ($(xmlDoc).find('a\\:Results').length != 0) {
+            return $(xmlDoc).find('a\\:Results').children().eq(0).children().eq(1).text();
+        } else {
+            return $(xmlDoc).find('Results').children().eq(0).children().eq(1).text(); //Chrome 24.0.1312.52 could not find node by the previous code
+        }
 
-        return $(xmlDoc).find('a\\:Results').children().eq(0).children().eq(1).text();
     };
 
     var getCurrentUserBusinessUnitId = function () {
@@ -2288,7 +2356,11 @@ XrmServiceToolkit.Soap = function () {
                       "</request>";
         var xmlDoc = doRequest(request, "Execute");
 
-        return $(xmlDoc).find('a\\:Results').children().eq(1).children().eq(1).text();
+        if ($(xmlDoc).find('a\\:Results').length != 0) {
+            return $(xmlDoc).find('a\\:Results').children().eq(1).children().eq(1).text();
+        } else {
+            return $(xmlDoc).find('Results').children().eq(1).children().eq(1).text(); //Chrome 24.0.1312.52 could not find node by the previous code
+        }
     };
 
     var getCurrentUserRoles = function () {
@@ -2317,7 +2389,7 @@ XrmServiceToolkit.Soap = function () {
         var fetchResult = fetch(xml);
         var roles = [];
 
-        if (fetchResult !== null) {
+        if (fetchResult !== null && typeof fetchResult != 'undefined') {
             for (var i = 0; i < fetchResult.length; i++) {
                 roles[i] = fetchResult[i].attributes["name"].value;
             }
@@ -2647,7 +2719,12 @@ XrmServiceToolkit.Soap = function () {
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
-            var response = $(resultXml).find('c\\:value').eq(0);
+            var response;
+            if ($(resultXml).find('c\\:value').length != 0) {
+                response = $(resultXml).find('c\\:value').eq(0);
+            } else {
+                response = $(resultXml).find('value').eq(0); ; //Chrome 24.0.1312.52 could not find node by the previous code
+            }
             var result = ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlDecode(response.text()) : crmXmlDecode(response.text()));
             if (!async)
                 return result;
