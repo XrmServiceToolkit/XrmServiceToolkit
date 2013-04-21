@@ -8,26 +8,29 @@
   <script type="text/javascript" src="Scripts/helper/jquery.js"></script>
   <script type="text/javascript" src="Scripts/qunit/qunit.js"></script>
   <script type="text/javascript" src="Scripts/helper/XrmServiceToolkit.js"></script>
+<%-- ReSharper disable UnusedLocals --%>
+<%-- ReSharper disable QualifiedExpressionMaybeNull --%>
   <script type="text/javascript">
 
       /**
       * MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
       * @author Jaimie Ji
-      * @current version : 1.4.0 (beta)
-      *   Date: January, 2013
+      * @current version : 1.4.1 (beta)
+      *   Date: April, 2013
       *       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
-      *       Feature: Add Cross Browser Support for RU12
-      *       Tested Platform: IE9, IE10, Chrome Version 24.0.1312.56 m, Firefox 18.0.1
+      *       Feature: Add Cross Browser Support for RU12, RU13
+      *       Tested Platform: IE9, IE10, Chrome Version 26.0.1410.64 m, Firefox 20.0.1
       * Credits:
       *   The idea of this library and Unit Testing was inspired by Daniel Cai's CrmWebServiceToolkit.
       * Date: November, 2012
       */
       var guidExpr = /^(\{)?([0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})(\})?$/;
       var contactId;
-      var birthDate = new Date(1955, 2, 20);
+      var birthDate = new Date("20 Feb 1955");
       var currentUserId, whoamiUserId;
       var accountId;
       var emailId;
+
 
       //Test Rest and Soap Functions
       try {
@@ -49,17 +52,17 @@
               contact.DoNotPhone = true;
 
               XrmServiceToolkit.Rest.Create(
-                    contact,
-                    "ContactSet",
-                    function (result) {
-                        contactId = result.ContactId;
-                        ok(guidExpr.test(result.ContactId), "Creating a contact should returned the new record's ID in GUID format. ");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  contact,
+                  "ContactSet",
+                  function (result) {
+                      contactId = result.ContactId;
+                      ok(guidExpr.test(result.ContactId), "Creating a contact should returned the new record's ID in GUID format. ");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Create() method to create a new record", function () {
@@ -84,39 +87,39 @@
               var today = new Date();
               var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3); //Set a date three days in the future.
 
-              var LowPriTask = { Subject: "Low Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 0} }; //Low Priority Task
-              var HighPriTask = { Subject: "High Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 2} }; //High Priority Task
-              account.Account_Tasks = [LowPriTask, HighPriTask];
+              var lowPriTask = { Subject: "Low Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 0} }; //Low Priority Task
+              var highPriTask = { Subject: "High Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 2} }; //High Priority Task
+              account.Account_Tasks = [lowPriTask, highPriTask];
               XrmServiceToolkit.Rest.Create(
-                    account,
-                    "AccountSet",
-                    function (result) {
-                        accountId = result.AccountId;
-                        ok(guidExpr.test(result.AccountId), "Creating a account should returned the new record's ID in GUID format. ");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  account,
+                  "AccountSet",
+                  function (result) {
+                      accountId = result.AccountId;
+                      ok(guidExpr.test(result.AccountId), "Creating a account should returned the new record's ID in GUID format. ");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Retrieve() method to retrieve a record", function () {
 
               XrmServiceToolkit.Rest.Retrieve(
-                    accountId,
-                    "AccountSet",
-                    null, null,
-                    function (result) {
-                        var Id = result.AccountId;
-                        equal(Id, accountId, "Retrieve() method should return the same account ID as Create() result. ");
+                  accountId,
+                  "AccountSet",
+                  null, null,
+                  function (result) {
+                      var id = result.AccountId;
+                      equal(id, accountId, "Retrieve() method should return the same account ID as Create() result. ");
 
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Update() method to update a record", function () {
@@ -131,102 +134,102 @@
               account.EMailAddress1 = "someone@microsoft.com";
 
               XrmServiceToolkit.Rest.Update(
-                    accountId,
-                    account,
-                    "AccountSet",
-                    function () {
-                        equal(true, true, "The record should have been updated.");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  accountId,
+                  account,
+                  "AccountSet",
+                  function () {
+                      equal(true, true, "The record should have been updated.");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Associate() method to associate a record", function () {
 
               XrmServiceToolkit.Rest.Associate(
-                    contactId,
-                    "ContactSet",
-                    accountId,
-                    "AccountSet",
-                    "account_primary_contact",
-                    function () {
-                        equal(true, true, "The record should have been associated.");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  contactId,
+                  "ContactSet",
+                  accountId,
+                  "AccountSet",
+                  "account_primary_contact",
+                  function () {
+                      equal(true, true, "The record should have been associated.");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Disassociate() method to disassociate a record", function () {
 
               XrmServiceToolkit.Rest.Disassociate(
-                        contactId,
-                        "ContactSet",
-                        accountId,
-                        "account_primary_contact",
-                        function () {
-                            equal(true, true, "The record should have been disassociated.");
-                        },
-                        function (error) {
-                            equal(true, false, error.message);
-                        },
-                        false
-                    );
+                      contactId,
+                      "ContactSet",
+                      accountId,
+                      "account_primary_contact",
+                      function () {
+                          equal(true, true, "The record should have been disassociated.");
+                      },
+                      function (error) {
+                          equal(true, false, error.message);
+                      },
+                      false
+                  );
           });
 
           test("Test XrmServiceToolkit.Rest.Delete(account) method to delete a record", function () {
 
               XrmServiceToolkit.Rest.Delete(
-                    accountId,
-                    "AccountSet",
-                    function () {
-                        equal(true, true, "The record should have been deleted.");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  accountId,
+                  "AccountSet",
+                  function () {
+                      equal(true, true, "The record should have been deleted.");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.Delete(contact) method to delete a record", function () {
 
               XrmServiceToolkit.Rest.Delete(
-                    contactId,
-                    "ContactSet",
-                    function () {
-                        equal(true, true, "The record should have been deleted.");
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    false
-                );
+                  contactId,
+                  "ContactSet",
+                  function () {
+                      equal(true, true, "The record should have been deleted.");
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  false
+              );
           });
 
           test("Test XrmServiceToolkit.Rest.RetrieveMultiple(account) method to get the contacts", function () {
 
               var counter = 0;
               XrmServiceToolkit.Rest.RetrieveMultiple(
-                    "AccountSet",
-                    "$select=AccountId, Name",
-                    function (results) {
-                        //ok(results.length > 0, results.length.toString() + " records should have been retrieved.");   
-                        counter += results.length;
-                    },
-                    function (error) {
-                        equal(true, false, error.message);
-                    },
-                    function onComplete() {
-                        ok(counter > 0, counter.toString() + " records should have been retrieved.");
-                    },
-                    false
-                );
+                  "AccountSet",
+                  "$select=AccountId, Name",
+                  function (results) {
+                      //ok(results.length > 0, results.length.toString() + " records should have been retrieved.");   
+                      counter += results.length;
+                  },
+                  function (error) {
+                      equal(true, false, error.message);
+                  },
+                  function onComplete() {
+                      ok(counter > 0, counter.toString() + " records should have been retrieved.");
+                  },
+                  false
+              );
           });
 
           module("[Soap Functions]");
@@ -234,10 +237,10 @@
           test("Test XrmServiceToolkit.Soap.Execute() method using WhoAmIRequest message to get current user's ID", function () {
 
               var request = "<request i:type='b:WhoAmIRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>" +
-                                "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />" +
-                                "<a:RequestId i:nil='true' />" +
-                                "<a:RequestName>WhoAmI</a:RequestName>" +
-                              "</request>";
+                              "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />" +
+                              "<a:RequestId i:nil='true' />" +
+                              "<a:RequestName>WhoAmI</a:RequestName>" +
+                            "</request>";
               var whoAmI = XrmServiceToolkit.Soap.Execute(request);
               if ($(whoAmI).find("a\\:Results").length != 0) {
                   whoamiUserId = $(whoAmI).find('a\\:Results').children().eq(0).children().eq(1).text();
@@ -343,50 +346,50 @@
           test("Test XrmServiceToolkit.Soap.RetrieveMultiple() method to retrieve a CRM record (contact)", function () {
 
               var query =
-                         "<a:ColumnSet>" +
-                          "<a:AllColumns>false</a:AllColumns>" +
-                          "<a:Columns xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
-                            "<b:string>firstname</b:string>" +
-                            "<b:string>lastname</b:string>" +
-                            "<b:string>middlename</b:string>" +
-                            "<b:string>familystatuscode</b:string>" +
-                            "<b:string>ownerid</b:string>" +
-                            "<b:string>creditlimit</b:string>" +
-                            "<b:string>birthdate</b:string>" +
-                            "<b:string>donotemail</b:string>" +
-                            "<b:string>donotphone</b:string>" +
-                          "</a:Columns>" +
-                        "</a:ColumnSet>" +
-                        "<a:Criteria>" +
-                          "<a:Conditions />" +
-                          "<a:FilterOperator>And</a:FilterOperator>" +
-                          "<a:Filters>" +
-                            "<a:FilterExpression>" +
-                              "<a:Conditions>" +
-                                "<a:ConditionExpression>" +
-                                  "<a:AttributeName>contactid</a:AttributeName>" +
-                                  "<a:Operator>Equal</a:Operator>" +
-                                  "<a:Values xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
-                                    "<b:anyType i:type='c:string' xmlns:c='http://www.w3.org/2001/XMLSchema'>" + contactId + "</b:anyType>" +
-                                  "</a:Values>" +
-                                "</a:ConditionExpression>" +
-                              "</a:Conditions>" +
-                              "<a:FilterOperator>And</a:FilterOperator>" +
-                              "<a:Filters />" +
-                            "</a:FilterExpression>" +
-                          "</a:Filters>" +
-                        "</a:Criteria>" +
-                        "<a:Distinct>false</a:Distinct>" +
-                        "<a:EntityName>contact</a:EntityName>" +
-                        "<a:LinkEntities />" +
-                        "<a:Orders />" +
-                        "<a:PageInfo>" +
-                          "<a:Count>0</a:Count>" +
-                          "<a:PageNumber>0</a:PageNumber>" +
-                          "<a:PagingCookie i:nil='true' />" +
-                          "<a:ReturnTotalRecordCount>false</a:ReturnTotalRecordCount>" +
-                        "</a:PageInfo>" +
-                        "<a:NoLock>false</a:NoLock>";
+                       "<a:ColumnSet>" +
+                        "<a:AllColumns>false</a:AllColumns>" +
+                        "<a:Columns xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
+                          "<b:string>firstname</b:string>" +
+                          "<b:string>lastname</b:string>" +
+                          "<b:string>middlename</b:string>" +
+                          "<b:string>familystatuscode</b:string>" +
+                          "<b:string>ownerid</b:string>" +
+                          "<b:string>creditlimit</b:string>" +
+                          "<b:string>birthdate</b:string>" +
+                          "<b:string>donotemail</b:string>" +
+                          "<b:string>donotphone</b:string>" +
+                        "</a:Columns>" +
+                      "</a:ColumnSet>" +
+                      "<a:Criteria>" +
+                        "<a:Conditions />" +
+                        "<a:FilterOperator>And</a:FilterOperator>" +
+                        "<a:Filters>" +
+                          "<a:FilterExpression>" +
+                            "<a:Conditions>" +
+                              "<a:ConditionExpression>" +
+                                "<a:AttributeName>contactid</a:AttributeName>" +
+                                "<a:Operator>Equal</a:Operator>" +
+                                "<a:Values xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
+                                  "<b:anyType i:type='c:string' xmlns:c='http://www.w3.org/2001/XMLSchema'>" + contactId + "</b:anyType>" +
+                                "</a:Values>" +
+                              "</a:ConditionExpression>" +
+                            "</a:Conditions>" +
+                            "<a:FilterOperator>And</a:FilterOperator>" +
+                            "<a:Filters />" +
+                          "</a:FilterExpression>" +
+                        "</a:Filters>" +
+                      "</a:Criteria>" +
+                      "<a:Distinct>false</a:Distinct>" +
+                      "<a:EntityName>contact</a:EntityName>" +
+                      "<a:LinkEntities />" +
+                      "<a:Orders />" +
+                      "<a:PageInfo>" +
+                        "<a:Count>0</a:Count>" +
+                        "<a:PageNumber>0</a:PageNumber>" +
+                        "<a:PagingCookie i:nil='true' />" +
+                        "<a:ReturnTotalRecordCount>false</a:ReturnTotalRecordCount>" +
+                      "</a:PageInfo>" +
+                      "<a:NoLock>false</a:NoLock>";
 
               var retrievedContacts = XrmServiceToolkit.Soap.RetrieveMultiple(query);
 
@@ -411,24 +414,24 @@
           test("Test XrmServiceToolkit.Soap.Fetch() method to retrieve a CRM record (contact)", function () {
 
               var fetchXml =
-                        "<fetch mapping='logical'>" +
-                           "<entity name='contact'>" +
-                              "<attribute name='contactid' />" +
-                              "<attribute name='firstname' />" +
-                              "<attribute name='lastname' />" +
-                              "<attribute name='middlename' />" +
-                              "<attribute name='familystatuscode' />" +
-                              "<attribute name='ownerid' />" +
-                              "<attribute name='creditlimit' />" +
-                              "<attribute name='birthdate' />" +
-                              "<attribute name='accountrolecode' />" +
-                              "<attribute name='donotemail' />" +
-                              "<attribute name='donotphone' />" +
-                              "<filter>" +
-                                 "<condition attribute='contactid' operator='eq' value='" + contactId + "' />" +
-                              "</filter>" +
-                           "</entity>" +
-                        "</fetch>";
+                      "<fetch mapping='logical'>" +
+                         "<entity name='contact'>" +
+                            "<attribute name='contactid' />" +
+                            "<attribute name='firstname' />" +
+                            "<attribute name='lastname' />" +
+                            "<attribute name='middlename' />" +
+                            "<attribute name='familystatuscode' />" +
+                            "<attribute name='ownerid' />" +
+                            "<attribute name='creditlimit' />" +
+                            "<attribute name='birthdate' />" +
+                            "<attribute name='accountrolecode' />" +
+                            "<attribute name='donotemail' />" +
+                            "<attribute name='donotphone' />" +
+                            "<filter>" +
+                               "<condition attribute='contactid' operator='eq' value='" + contactId + "' />" +
+                            "</filter>" +
+                         "</entity>" +
+                      "</fetch>";
 
               var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
 
@@ -453,14 +456,14 @@
           test("Test XrmServiceToolkit.Soap.Fetch() method to do an aggregation query", function () {
 
               var fetchXml =
-                    "<fetch mapping='logical' aggregate='true'>" +
-                       "<entity name='contact'>" +
-                          "<attribute name='contactid' aggregate='count' alias='count' />" +
-                          "<filter>" +
-                             "<condition attribute='contactid' operator='eq' value='" + contactId + "' />" +
-                          "</filter>" +
-                       "</entity>" +
-                    "</fetch>";
+                  "<fetch mapping='logical' aggregate='true'>" +
+                     "<entity name='contact'>" +
+                        "<attribute name='contactid' aggregate='count' alias='count' />" +
+                        "<filter>" +
+                           "<condition attribute='contactid' operator='eq' value='" + contactId + "' />" +
+                        "</filter>" +
+                     "</entity>" +
+                  "</fetch>";
 
               var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
 
@@ -606,29 +609,29 @@
               createEmail.attributes["description"] = "This email was created by the XrmServiceToolkit.Soap.Create() sample.";
 
               var from = [
-                    { id: whoamiUserId, logicalName: "systemuser", type: "EntityReference" }
-                ];
+                  { id: whoamiUserId, logicalName: "systemuser", type: "EntityReference" }
+              ];
 
               createEmail.attributes["from"] = { value: from, type: "EntityCollection" };
 
               var to = [
-                    { id: accountId, logicalName: "account", type: "EntityReference" },
-                    { id: contactId, logicalName: "contact", type: "EntityReference" }
-                ];
+                  { id: accountId, logicalName: "account", type: "EntityReference" },
+                  { id: contactId, logicalName: "contact", type: "EntityReference" }
+              ];
 
               createEmail.attributes["to"] = { value: to, type: "EntityCollection" };
 
               var cc = [
-                    { id: accountId, logicalName: "account", type: "EntityReference" },
-                    { id: contactId, logicalName: "contact", type: "EntityReference" }
-                ];
+                  { id: accountId, logicalName: "account", type: "EntityReference" },
+                  { id: contactId, logicalName: "contact", type: "EntityReference" }
+              ];
 
               createEmail.attributes["cc"] = { value: cc, type: "EntityCollection" };
 
               var bcc = [
-                    { id: accountId, logicalName: "account", type: "EntityReference" },
-                    { id: contactId, logicalName: "contact", type: "EntityReference" }
-                ];
+                  { id: accountId, logicalName: "account", type: "EntityReference" },
+                  { id: contactId, logicalName: "contact", type: "EntityReference" }
+              ];
 
               createEmail.attributes["bcc"] = { value: bcc, type: "EntityCollection" };
 
@@ -649,7 +652,9 @@
               equal(retrievedEmail.attributes['subject'].type, "string", "Subject matches");
               equal(retrievedEmail.attributes['description'].value, "This email was created by the XrmServiceToolkit.Soap.Create() sample.", "Description Matches");
               equal(retrievedEmail.attributes['from'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
-              equal(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection"); ;
+              equal(retrievedEmail.attributes['from'].value.length, 1, "CRM should return 1 values for email from attribute");
+              equal(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+              equal(retrievedEmail.attributes['to'].value.length, 2, "CRM should return 2 values for email to attribute");
               equal(retrievedEmail.attributes['cc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
               equal(retrievedEmail.attributes['bcc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
               equal(retrievedEmail.attributes['directioncode'].type, "boolean", "CRM boolean type should be boolean");
@@ -666,6 +671,27 @@
 
               var deleteResponse = XrmServiceToolkit.Soap.Delete("account", accountId);
               ok(deleteResponse == "", "The account can be deleted. ");
+
+          });
+
+          test("Test XrmServiceToolkit.Soap.RetrieveAllEntitiesMetadata() method to return CRM Metadata for all entities", function () {
+
+              var allEntitiesMetadata = XrmServiceToolkit.Soap.RetrieveAllEntitiesMetadata(["Entity"], true);
+              ok(allEntitiesMetadata.length > 0, "The Metadata has been returned for all entities ");
+
+          });
+
+          test("Test XrmServiceToolkit.Soap.RetrieveEntityMetadata() method to return CRM Metadata for a certain entity", function () {
+
+              var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Entity"], "account", true);
+              ok(entityMetadata.length == 1, "The Metadata has been returned for the account entity");
+
+          });
+
+          test("Test XrmServiceToolkit.Soap.RetrieveAttributeMetadata() method to return CRM Metadata for a certain attribute", function () {
+
+              var attributeMetadata = XrmServiceToolkit.Soap.RetrieveAttributeMetadata("account", "name", true);
+              ok(attributeMetadata.length == 1, "The Metadata has been returned for the name attribute of the account entity");
 
           });
 
@@ -697,6 +723,8 @@
       }
 
   </script>
+<%-- ReSharper restore QualifiedExpressionMaybeNull --%>
+<%-- ReSharper restore UnusedLocals --%>
 </head>
 <body>
     <h1 id="qunit-header">Xrm Service Toolkit Test - Functions</h1>

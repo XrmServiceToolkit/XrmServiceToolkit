@@ -13,18 +13,18 @@
         /**
         * MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
         * @author Jaimie Ji
-        * @current version : 1.4 (beta)
-        *   Date: January, 2013
+        * @current version : 1.4.1 (beta)
+        *   Date: April, 2013
         *       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
-        *       Feature: Add Cross Browser Support for RU12
-        *       Tested Platform: IE9, IE10, Chrome Version 24.0.1312.56 m, Firefox 18.0.1
+        *       Feature: Add Cross Browser Support for RU12, RU13
+        *       Tested Platform: IE9, IE10, Chrome Version 26.0.1410.64 m, Firefox 20.0.1
         * Credits:
         *   The idea of this library and Unit Testing was inspired by Daniel Cai's CrmWebServiceToolkit.
         * Date: November, 2012
         */
         var guidExpr = /^(\{)?([0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})(\})?$/;
         var contactId;
-        var birthDate = new Date(1955, 2, 20);
+        var birthDate = new Date("20 Feb 1955");
         var currentUserId, whoamiUserId;
         var accountId;
         var emailId;
@@ -649,7 +649,9 @@
                 equal(retrievedEmail.attributes['subject'].type, "string", "Subject matches");
                 equal(retrievedEmail.attributes['description'].value, "This email was created by the XrmServiceToolkit.Soap.Create() sample.", "Description Matches");
                 equal(retrievedEmail.attributes['from'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
-                equal(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection"); ;
+                equal(retrievedEmail.attributes['from'].value.length, 1, "CRM should return 1 values for email from attribute");
+                equal(retrievedEmail.attributes['to'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
+                equal(retrievedEmail.attributes['to'].value.length, 2, "CRM should return 2 values for email to attribute");
                 equal(retrievedEmail.attributes['cc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
                 equal(retrievedEmail.attributes['bcc'].type, "EntityCollection", "CRM partylist type should be EntityCollection");
                 equal(retrievedEmail.attributes['directioncode'].type, "boolean", "CRM boolean type should be boolean");
@@ -666,6 +668,27 @@
 
                 var deleteResponse = XrmServiceToolkit.Soap.Delete("account", accountId);
                 ok(deleteResponse == "", "The account can be deleted. ");
+
+            });
+
+            test("Test XrmServiceToolkit.Soap.RetrieveAllEntitiesMetadata() method to return CRM Metadata for all entities", function () {
+
+                var allEntitiesMetadata = XrmServiceToolkit.Soap.RetrieveAllEntitiesMetadata(["Entity"], true);
+                ok(allEntitiesMetadata.length > 0, "The Metadata has been returned for all entities ");
+
+            });
+
+            test("Test XrmServiceToolkit.Soap.RetrieveEntityMetadata() method to return CRM Metadata for a certain entity", function () {
+
+                var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Entity"], "account", true);
+                ok(entityMetadata.length == 1, "The Metadata has been returned for the account entity");
+
+            });
+
+            test("Test XrmServiceToolkit.Soap.RetrieveAttributeMetadata() method to return CRM Metadata for a certain attribute", function () {
+
+                var attributeMetadata = XrmServiceToolkit.Soap.RetrieveAttributeMetadata("account", "name", true);
+                ok(attributeMetadata.length == 1, "The Metadata has been returned for the name attribute of the account entity");
 
             });
 

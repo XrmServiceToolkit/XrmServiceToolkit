@@ -5,12 +5,8 @@
 
 account_onLoad = function () {
     try {
-        //Examples about how to use the extension mehtods.
-        XrmServiceToolkit.Extension.JQueryXrmFieldTooltip("new_JQueryFieldTooltipConfig");
-        XrmServiceToolkit.Extension.JQueryXrmDependentOptionSet("new_JQueryDependentOptionSetConfig");
-        XrmServiceToolkit.Extension.JQueryXrmCustomFilterView("new_JQueryLookupCustomFilterViewConfig");
-
-        XrmServiceToolkit.Common.DisableAllControlsInSection('general');
+        XrmServiceToolkit.Common.AddNotification('this is a test message', 1);
+        alert(XrmServiceToolkit.Common.GetObjectTypeCode('account'));
     }
     catch (err) {
         alert(err.message);
@@ -19,7 +15,7 @@ account_onLoad = function () {
 
 account_accountcategorycode_onChange = function () {
     try {
-        XrmServiceToolkit.Extension.JQueryXrmDependentOptionSet("new_JQueryDependentOptionSetConfig");
+        //XrmServiceToolkit.Extension.JQueryXrmDependentOptionSet("new_JQueryDependentOptionSetConfig");
     }
     catch (err) {
         alert(err.message);

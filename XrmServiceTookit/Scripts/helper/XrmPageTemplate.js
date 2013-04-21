@@ -173,7 +173,7 @@ function _context() {
    /// <returns type="Object" />
    return pageData.QueryStringParameters;
   },
-  getServerUrl: function () {
+  getClientUrl: function () {
    /// <summary>
    /// Returns the base server URL. When a user is working offline with the Microsoft Dynamics CRM for Microsoft Office Outlook client, the URL is to the local Microsoft Dynamics CRM Web services.
    /// </summary>
