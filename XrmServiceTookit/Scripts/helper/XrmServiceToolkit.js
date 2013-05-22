@@ -5,7 +5,7 @@
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @current version : 1.4.1
+* @current version : 1.4.2
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -79,6 +79,16 @@
 *       New Function - XrmServiceToolkit.Soap.RetrieveAllEntitiesMetadata method is a method to return all metadata for all entities by the specified entity filters
 *       New Function - XrmServiceToolkit.Soap.RetrieveEntityMetadata method is a method to return the metadata for a certain entity by the specified entity filters
 *       New Function - XrmServiceToolkit.Soap.RetrieveAttributeMetadata method is a method to return the metadata for a certain entity's attribute
+**********************************************************************************************************
+*   Version: 1.4.2 (beta)
+*   Date: May, 2013
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       Tested Platform: IE10
+*       New Fix - XrmServiceToolkit.Soap.Fetch now takes an additional parameter, 'fetchAll', that when set to true will retrieve all pages of results
+*       New Behavior - XrmServiceToolkit.Soap.Fetch works best when providing a FetchXML string starting with the "entity" node, because of the way paging works;
+*           It will still function with the traditional "fetch" node to start, but then the XML has to be parsed to select just the "entity" node, which adds some overhead.
+*       New Behavior - XrmServiceToolkit fetch and queryall methods use a unified model, and some redundant code has been removed.  This allows better paging operations.
+*
 **********************************************************************************************************
 */
 
@@ -228,36 +238,36 @@ XrmServiceToolkit.Common = function () {
         if (level === 1) {
             //critical
             if (typeof notificationsArea.AddNotification !== "undefined") {
-                notificationsArea.AddNotification('mep1', 1, 'source', message);
+            notificationsArea.AddNotification('mep1', 1, 'source', message);
             } else if (typeof notificationsArea.control.AddNotification !== "undefined") {
                 notificationsArea.control.AddNotification('mep1', 1, 'source', message);
-            }
+        }
         }
 
         if (level === 2) {
             //Info
             if (typeof notificationsArea.AddNotification !== "undefined") {
-                notificationsArea.AddNotification('mep3', 3, 'source', message);
+            notificationsArea.AddNotification('mep3', 3, 'source', message);
             } else if (typeof notificationsArea.control.AddNotification !== "undefined") {
                 notificationsArea.control.AddNotification('mep3', 3, 'source', message);
-            }
+        }
         }
         if (level === 3) {
             //Warning
             if (typeof notificationsArea.AddNotification !== "undefined") {
-                notificationsArea.AddNotification('mep2', 2, 'source', message);
+            notificationsArea.AddNotification('mep2', 2, 'source', message);
             } else if (typeof notificationsArea.control.AddNotification !== "undefined") {
                 notificationsArea.control.AddNotification('mep2', 2, 'source', message);
-            }
+        }
         }
         if (message === "") {
             if (typeof notificationsArea.SetNotifications !== "undefined") {
-                notificationsArea.SetNotifications(null, null);
+            notificationsArea.SetNotifications(null, null);
             } else if (typeof notificationsArea.control.SetNotifications !== "undefined") {
                 notificationsArea.control.SetNotifications(null, null);
             } else {
                 alert('Set Notification is no longer supported');
-            }
+        }
         }
     };
 
@@ -1476,7 +1486,7 @@ XrmServiceToolkit.Soap = function () {
                                             entCv.id = $(attr).children().eq(k).children().eq(1).children().eq(2).children().eq(0).text();
                                             entCv.logicalName = $(attr).children().eq(k).children().eq(1).children().eq(2).children().eq(1).text();
                                             entCv.name = $(attr).children().eq(k).children().eq(1).children().eq(2).children().eq(2).text();
-                                        }
+                                    }
                                     }
                                     else {
                                         entCv.value = $(attr.childNodes[k].childNodes[1]).text();
@@ -1752,17 +1762,56 @@ XrmServiceToolkit.Soap = function () {
         // ReSharper restore NotAllPathsReturnValue
     };
 
-    var fetch = function (fetchXml, callback) {
+    var fetch = function (fetchCore, callback, fetchAll) {
         ///<summary>
         /// Sends synchronous/asynchronous request to do a fetch request.
         ///</summary>
-        ///<param name="fetchXml" type="String">
-        /// A JavaScript String with properties corresponding to the fetchXml
-        /// that are valid for fetch operations.
+        ///<param name="fetchCore" type="String">
+        /// A JavaScript String containing serialized XML using the FetchXML schema.
+        /// For efficiency, start with the "entity" node.
         /// </param>
         ///<param name="callback" type="Function">
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
         /// </param>
+        
+        if (fetchCore.indexOf("<fetch") !== -1)
+        {
+            var fetchEntity = $($.parseXML(fetchCore)).find("entity");
+
+            if (fetchEntity.length < 1)
+            {
+                throw new Error("XrmServiceToolkit.Fetch: No 'entity' node in the provided FetchXML.");
+            }
+
+            var fetchCoreDom = fetchEntity[0];
+
+            try
+            {
+                if (typeof XMLSerializer !== typeof undefined)
+                {
+                    fetchCore = (new XMLSerializer()).serializeToString(fetchCoreDom);
+                }
+            }
+            catch (error)
+            {
+                if (fetchCoreDom.xml)
+                {
+                    fetchCore = fetchCoreDom.xml;
+                }
+                else
+                {
+                    throw new Error("XrmServiceToolkit.Fetch: This client does not provide the necessary XML features to continue.");
+                }
+            }
+        }
+
+        var fetchXml =
+                [
+                    "<fetch mapping='logical'>",
+                    fetchCore,
+                    "</fetch>"
+                ].join("");
+
         var msgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
                             "<a:Query>" +
                                 ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(fetchXml) : crmXmlEncode(fetchXml)) +
@@ -1778,13 +1827,38 @@ XrmServiceToolkit.Soap = function () {
                 fetchResult = $(resultXml).find("Entities").eq(0)[0]; //chrome could not load node
             }
 
+            if ($(resultXml).find("a\\:MoreRecords").length != 0)
+            {
+                moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
+            } else
+            {
+                moreRecords = $(resultXml).find("MoreRecords").eq(0)[0].firstChild.text === "true"; //chrome
+            }
+
             var fetchResults = [];
 
-            for (var i = 0; i < fetchResult.childNodes.length; i++) {
+            for (var ii = 0; ii < fetchResult.childNodes.length; ii++)
+            {
                 var entity = new businessEntity();
 
-                entity.deserialize(fetchResult.childNodes[i]);
-                fetchResults[i] = entity;
+                entity.deserialize(fetchResult.childNodes[ii]);
+                fetchResults.push(entity);
+            }
+
+            if (fetchAll && moreRecords)
+            {
+                var pageNumber = 2;
+                var pageCookie;
+
+                if ($(resultXml).find("a\\:PagingCookie").length != 0)
+                {
+                    pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                } else
+                {
+                    pageCookie = $(resultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
+                }
+
+                fetchMore(fetchCore, pageNumber, pageCookie, fetchResults);
             }
 
             if (!async)
@@ -1915,7 +1989,22 @@ XrmServiceToolkit.Soap = function () {
         var output = [];
         for (var i = 0; i < attributes.length; i++) {
             if (attributes[i] != '') {
-                output.push("<condition attribute='", attributes[i], "' operator='eq' value='", values[i], "' />");
+                if (typeof values[i] == typeof [])
+                {
+                    output.push("<condition attribute='", attributes[i], "' operator='in' >");
+
+                    for (var valueIndex in values[i])
+                    {
+                        var value = encodeValue(values[i][valueIndex]);
+                        output.push("<value>" + value + "</value>");
+                    }
+
+                    output.push("</condition>");
+                }
+                else if (typeof values[i] == typeof "")
+                {
+                    output.push("<condition attribute='", attributes[i], "' operator='eq' value='", encodeValue(values[i]), "' />");
+                }
             }
         }
         return output.join("");
@@ -1958,47 +2047,25 @@ XrmServiceToolkit.Soap = function () {
 
         var xml =
                 [
-                    "<fetch mapping='logical'>",
                     "   <entity name='", entityName, "'>",
                            joinArray("<attribute name='", columnSet, "' />"),
                            joinArray("<order attribute='", orderBy, "' />"),
                     "      <filter>",
                               joinConditionPair(attributes, values),
                     "      </filter>",
-                    "   </entity>",
-                    "</fetch>"
+                    "   </entity>"
                 ].join("");
 
         return fetch(xml, callback);
     };
 
-    var fetchMore = function (queryOptions, pageNumber, pageCookie, fetchResults) {
-        var entityName = queryOptions.entityName;
-        var attributes = queryOptions.attributes;
-        var values = queryOptions.values;
-        var columnSet = queryOptions.columnSet;
-        var orderBy = queryOptions.orderBy || '';
-
-        attributes = isArray(attributes) ? attributes : [attributes];
-        values = isArray(values) ? values : [values];
-        orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
-        columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
-
-        for (var i = 0; i < values.length; i++) {
-            values[i] = encodeValue(values[i]);
-        }
+    var fetchMore = function (fetchCoreXml, pageNumber, pageCookie, fetchResults) {
 
         //Build new query
         var moreFetchXml =
                 [
                     "<fetch mapping='logical' page='" + pageNumber + "' count='5000' paging-cookie='" + pageCookie + "'>",
-                    "   <entity name='", entityName, "'>",
-                           joinArray("<attribute name='", columnSet, "' />"),
-                           joinArray("<order attribute='", orderBy, "' />"),
-                    "      <filter>",
-                              joinConditionPair(attributes, values),
-                    "      </filter>",
-                    "   </entity>",
+                    fetchCore,
                     "</fetch>"
                 ].join("");
 
@@ -2040,7 +2107,9 @@ XrmServiceToolkit.Soap = function () {
                     newPageCookie = $(moreResultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
                 }
 
-                fetchMore(queryOptions, pageNumber, newPageCookie, fetchResults);
+                fetchMore(fetchCore, pageNumber, newPageCookie, fetchResults);
+            } else {
+                return fetchResults;
             }
         });
     };
@@ -2073,75 +2142,20 @@ XrmServiceToolkit.Soap = function () {
         orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
         columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
 
-        for (var i = 0; i < values.length; i++) {
-            values[i] = encodeValue(values[i]);
-        }
-
-        var fetchXml =
-                [
-                    "<fetch mapping='logical'>",
+        var fetchCore = [
                     "   <entity name='", entityName, "'>",
                            joinArray("<attribute name='", columnSet, "' />"),
                            joinArray("<order attribute='", orderBy, "' />"),
                     "      <filter>",
                               joinConditionPair(attributes, values),
                     "      </filter>",
-                    "   </entity>",
-                    "</fetch>"
-                ].join("");
+                    "   </entity>"
+        ].join[""];
 
-        var msgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
-                            "<a:Query>" +
-                                ((typeof window.CrmEncodeDecode != 'undefined') ? window.CrmEncodeDecode.CrmXmlEncode(fetchXml) : crmXmlEncode(fetchXml)) +
-                            "</a:Query>" +
-                        "</query>";
+
         var async = !!callback;
 
-        return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
-
-            //Logic here is inspired by http://nishantrana.wordpress.com/2012/09/11/paging-cookie-is-required-when-trying-to-retrieve-a-set-of-records-on-any-high-pages-error-in-crm-2011/
-
-            var fetchResult;
-            var moreRecords;
-
-            if ($(resultXml).find("a\\:Entities").length != 0) {
-                fetchResult = $(resultXml).find("a\\:Entities").eq(0)[0];
-            } else {
-                fetchResult = $(resultXml).find("Entities").eq(0)[0]; //chrome
-            }
-
-            if ($(resultXml).find("a\\:MoreRecords").length != 0) {
-                moreRecords = $(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-            } else {
-                moreRecords = $(resultXml).find("MoreRecords").eq(0)[0].firstChild.text === "true"; //chrome
-            }
-
-            var fetchResults = [];
-
-            for (var ii = 0; ii < fetchResult.childNodes.length; ii++) {
-                var entity = new businessEntity();
-
-                entity.deserialize(fetchResult.childNodes[ii]);
-                fetchResults.push(entity);
-            }
-
-            if (moreRecords) {
-                var pageNumber = 2;
-                var pageCookie;
-                if ($(resultXml).find("a\\:PagingCookie").length != 0) {
-                    pageCookie = $(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
-                } else {
-                    pageCookie = $(resultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
-                }
-                fetchMore(queryOptions, pageNumber, pageCookie, fetchResults);
-            }
-
-            if (!async)
-                return fetchResults;
-            else
-                callback(fetchResults);
-            // ReSharper disable NotAllPathsReturnValue
-        });
+        return fetch(fetchCore, callback, true);
     };
 
     var setState = function (entityName, id, stateCode, statusCode, callback) {
@@ -3588,23 +3602,23 @@ XrmServiceToolkit.Extension = function () {
         var url = notescontrol.attr('url');
         //if (url === null) return;
         if (url != null) {
-            if (!allowInsert) {
-                url = url.replace("EnableInsert=true", "EnableInsert=false");
-            }
+        if (!allowInsert) {
+            url = url.replace("EnableInsert=true", "EnableInsert=false");
+        }
             else if (!allowEdit) {
-                url = url.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
-            }
-            notescontrol.attr('url', url);
+            url = url.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
+        }
+        notescontrol.attr('url', url);
         } else {
-            var src = notescontrol.attr('src');
+        var src = notescontrol.attr('src');
             if (src != null) {
-                if (!allowInsert) {
+        if (!allowInsert) {
                     src = src.replace("EnableInsert=true", "EnableInsert=false");
-                }
+        }
                 else if (!allowEdit) {
                     src = src.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
-                }
-                notescontrol.attr('src', src);
+        }
+        notescontrol.attr('src', src);
             }
         }
     };
