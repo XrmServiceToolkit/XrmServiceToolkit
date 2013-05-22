@@ -5,7 +5,8 @@
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
-* @current version : 1.4.2
+* @author David Berry
+* @current version : 1.4.2 (beta)
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
