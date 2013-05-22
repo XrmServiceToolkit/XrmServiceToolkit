@@ -1775,7 +1775,7 @@ XrmServiceToolkit.Soap = function () {
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
         /// </param>
         
-        if (fetchCore.indexOf("<fetch") !== -1)
+        if (fetchCore.slice(0, 6) === "<fetch")
         {
             var fetchEntity = $($.parseXML(fetchCore)).find("entity");
 
@@ -2151,7 +2151,7 @@ XrmServiceToolkit.Soap = function () {
                               joinConditionPair(attributes, values),
                     "      </filter>",
                     "   </entity>"
-        ].join[""];
+        ].join("");
 
 
         var async = !!callback;
