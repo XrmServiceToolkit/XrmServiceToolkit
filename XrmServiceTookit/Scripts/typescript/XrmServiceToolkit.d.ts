@@ -22,7 +22,7 @@ module XrmServiceToolkit
     {
         id: string;
         logicalName: string;
-        attributes: Attribute[];
+        attributes: { [index: string]: Attribute; };
     }
 
     /**
@@ -32,6 +32,10 @@ module XrmServiceToolkit
     {
         type: string;
         value: any;
+        id?: string;
+        logicalName?: string;
+        name?: string;
+        formattedValue?: string;
     }
 
     /**
