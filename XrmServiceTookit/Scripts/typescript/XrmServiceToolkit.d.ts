@@ -1,4 +1,4 @@
-/// <reference path="Xrm.d.ts" />
+/// <reference path="Xrm2011.d.ts" />
 
 /**
 * MSCRM 2011 Web Service Toolkit for JavaScript
@@ -121,8 +121,7 @@ module XrmServiceToolkit
 
         export function Execute( request: string, callback?: ( resultXml: Document ) => void ): void;
         export function Execute(request: string): Document;
-        export function Fetch(fetchXml: String, callback?: (fetchResults: BusinessEntity[]) => void , fetchAll?: bool): void;
-        export function Fetch( fetchXml: String, callback?: ( fetchResults: BusinessEntity[] ) => void ): void;
+        export function Fetch( fetchXml: String, callback: ( fetchResults: BusinessEntity[] ) => void ): void;
         export function Fetch( fetchXml: String ): BusinessEntity[];
         export function Retrieve( entityName: string, id: string, columnSet: string[], callback?: ( retrieveResult: BusinessEntity ) => void ): void;
         export function Retrieve( entityName: string, id: string, columnSet: string[] ): BusinessEntity;
