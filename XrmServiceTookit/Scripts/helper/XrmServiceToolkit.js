@@ -1117,6 +1117,12 @@ XrmServiceToolkit.Soap = function () {
     };
 
     var encodeValue = function (value) {
+        // Handle GUIDs wrapped in braces
+        if (typeof value == typeof "" && value.slice(0, 1) == "{" && value.slice(-1) == "}")
+        {
+            value = value.slice(1, -1);
+        }
+
         // ReSharper disable QualifiedExpressionMaybeNull
         return (typeof value === "object" && value.getTime)
         // ReSharper restore QualifiedExpressionMaybeNull
