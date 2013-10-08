@@ -2,32 +2,32 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Xrm Service Toolkit Test(Html)</title>
-    <link rel="stylesheet" href="new_qunit.css" type="text/css" media="screen" />
-    <script type="text/javascript" src="ClientGlobalContext.js.aspx"></script>
-    <script type="text/javascript" src="new_json2.js"></script>
-    <script type="text/javascript" src="new_jquery.js"></script>
-    <script type="text/javascript" src="new_qunit.js"></script>
-    <script type="text/javascript" src="new_XrmServiceToolkit.js"></script>
+        <link rel="stylesheet" href="new_qunit.css" type="text/css" media="screen" />
+        <script type="text/javascript" src="ClientGlobalContext.js.aspx"></script>
+        <script type="text/javascript" src="new_json2.js"></script>
+        <script type="text/javascript" src="new_jquery.js"></script>
+        <script type="text/javascript" src="new_qunit.js"></script>
+        <script type="text/javascript" src="new_XrmServiceToolkit.js"></script>
     <script type="text/javascript">
 
         /**
         * MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
         * @author Jaimie Ji
-        * @current version : 1.4.1 (beta)
+        * @current version : 2.0.0 (beta)
         *   Date: April, 2013
-        *       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
-        *       Feature: Add Cross Browser Support for RU12, RU13
-        *       Tested Platform: IE9, IE10, Chrome Version 26.0.1410.64 m, Firefox 20.0.1
+        *   CRM 2013 Beta release 
+        *   Development Tool: VS2012, CRM2013 SDK beta release
         * Credits:
         *   The idea of this library and Unit Testing was inspired by Daniel Cai's CrmWebServiceToolkit.
         * Date: November, 2012
         */
         var guidExpr = /^(\{)?([0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})(\})?$/;
-        var contactId;
+        var contactId = "00000000-0000-0000-0000-000000000000";
         var birthDate = new Date("20 Feb 1955");
-        var currentUserId, whoamiUserId;
-        var accountId;
-        var emailId;
+        var currentUserId = "00000000-0000-0000-0000-000000000000";
+        var whoamiUserId = "00000000-0000-0000-0000-000000000000";
+        var accountId = "00000000-0000-0000-0000-000000000000";
+        var emailId = "00000000-0000-0000-0000-000000000000";
 
         //Test Rest and Soap Functions
         try {
@@ -84,8 +84,8 @@
                 var today = new Date();
                 var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3); //Set a date three days in the future.
 
-                var LowPriTask = { Subject: "Low Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 0} }; //Low Priority Task
-                var HighPriTask = { Subject: "High Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 2} }; //High Priority Task
+                var LowPriTask = { Subject: "Low Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 0 } }; //Low Priority Task
+                var HighPriTask = { Subject: "High Priority Task", ScheduledStart: startDate, PriorityCode: { Value: 2 } }; //High Priority Task
                 account.Account_Tasks = [LowPriTask, HighPriTask];
                 XrmServiceToolkit.Rest.Create(
                   account,
@@ -239,10 +239,10 @@
                               "<a:RequestName>WhoAmI</a:RequestName>" +
                             "</request>";
                 var whoAmI = XrmServiceToolkit.Soap.Execute(request);
-                if ($(whoAmI).find("a\\:Results").length != 0) {
-                    whoamiUserId = $(whoAmI).find('a\\:Results').children().eq(0).children().eq(1).text();
+                if (jQuery(whoAmI).find("a\\:Results").length != 0) {
+                    whoamiUserId = jQuery(whoAmI).find('a\\:Results').children().eq(0).children().eq(1).text();
                 } else {
-                    whoamiUserId = $(whoAmI).find('Results').children().eq(0).children().eq(1).text(); //chrome
+                    whoamiUserId = jQuery(whoAmI).find('Results').children().eq(0).children().eq(1).text(); //chrome
                 }
 
                 ok(guidExpr.test(whoamiUserId), "WhoAmI request should returned a valid GUID. ");
@@ -430,7 +430,7 @@
                          "</entity>" +
                       "</fetch>";
 
-                var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
+                var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
 
                 equal(retrievedContacts.length, 1, "only last created contact should be found");
                 equal(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
@@ -462,7 +462,7 @@
                      "</entity>" +
                   "</fetch>";
 
-                var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
+                var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
 
                 equal(fetchedContacts.length, 1, "only one record should be returned when doing aggregation.");
                 equal(fetchedContacts[0].attributes['count'].formattedValue, "1", "only one contact record would match the id.");
@@ -607,28 +607,28 @@
 
                 var from = [
                   { id: whoamiUserId, logicalName: "systemuser", type: "EntityReference" }
-              ];
+                ];
 
                 createEmail.attributes["from"] = { value: from, type: "EntityCollection" };
 
                 var to = [
                   { id: accountId, logicalName: "account", type: "EntityReference" },
                   { id: contactId, logicalName: "contact", type: "EntityReference" }
-              ];
+                ];
 
                 createEmail.attributes["to"] = { value: to, type: "EntityCollection" };
 
                 var cc = [
                   { id: accountId, logicalName: "account", type: "EntityReference" },
                   { id: contactId, logicalName: "contact", type: "EntityReference" }
-              ];
+                ];
 
                 createEmail.attributes["cc"] = { value: cc, type: "EntityCollection" };
 
                 var bcc = [
                   { id: accountId, logicalName: "account", type: "EntityReference" },
                   { id: contactId, logicalName: "contact", type: "EntityReference" }
-              ];
+                ];
 
                 createEmail.attributes["bcc"] = { value: bcc, type: "EntityCollection" };
 
@@ -719,7 +719,7 @@
             alert(error.message);
         }
 
-  </script>
+    </script>
 
 </head>
 <body>
@@ -727,5 +727,6 @@
     <h2 id="qunit-banner"></h2>
     <div id="qunit-testrunner-toolbar"></div>
     <h2 id="qunit-userAgent"></h2>
-    <ol id="qunit-tests"></ol></body>
+    <ol id="qunit-tests"></ol>
+</body>
 </html>

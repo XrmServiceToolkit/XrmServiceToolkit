@@ -6,7 +6,7 @@
     "AuthenticationHeader": "&lt;soap:Header&gt;&lt;CrmAuthenticationToken xmlns=\"http&#58;&#47;&#47;schemas.microsoft.com&#47;crm&#47;2007&#47;WebServices\"&gt;&lt;AuthenticationType xmlns=\"http&#58;&#47;&#47;schemas.microsoft.com&#47;crm&#47;2007&#47;CoreTypes\"&gt;3&lt;/AuthenticationType&gt;&lt;CrmTicket xmlns=\"http&#58;&#47;&#47;schemas.microsoft.com&#47;crm&#47;2007&#47;CoreTypes\"&gt;&lt;/CrmTicket&gt;&lt;OrganizationName xmlns=\"http&#58;&#47;&#47;schemas.microsoft.com&#47;crm&#47;2007&#47;CoreTypes\"&gt;jaimieji&lt;/OrganizationName&gt;&lt;CallerId xmlns=\"http&#58;&#47;&#47;schemas.microsoft.com&#47;crm&#47;2007&#47;CoreTypes\"&gt;00000000-0000-0000-0000-000000000000&lt;/CallerId&gt;&lt;/CrmAuthenticationToken&gt;&lt;/soap:Header&gt;",
     "CurrentTheme": "Default",
     "OrgLcid": 1033,
-    "OrgUniqueName": "jaimieji",
+    "OrgUniqueName": "XrmServiceToolkitDev",
     "QueryStringParameters": { "_gridType": "1", "etc": "1", "id": "{23DE412D-5940-E211-B148-D48564519C24}", "pagemode": "iframe", "preloadcache": "1354877028374", "rskey": "295304538" },
     "ServerUrl": "http://localhost:5555/XrmServiceToolkitDev",
     "UserId": "{03327570-43A1-418E-AA58-8EDE97E4A101}",

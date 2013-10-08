@@ -9381,7 +9381,7 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 
 
 // Expose jQuery to the global object
-window.jQuery = window.$ = jQuery;
+window.jQuery = jQuery;
 
 // Expose jQuery as an AMD module, but only for AMD loaders that
 // understand the issues with loading multiple versions of jQuery
