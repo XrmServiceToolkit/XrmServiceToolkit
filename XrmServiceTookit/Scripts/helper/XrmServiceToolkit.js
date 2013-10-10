@@ -1927,7 +1927,7 @@ XrmServiceToolkit.Soap = function () {
         var fetchXml =
                 [
                     "<fetch mapping='logical'",
-                    (isAggregate)? " aggregate='true'>:" : ">",
+                    (isAggregate)? " aggregate='true'>" : ">",
                     fetchCore,
                     "</fetch>"
                 ].join("");
