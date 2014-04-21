@@ -6,7 +6,7 @@
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
 * @author David Berry
-* @current version : 2.0.0 (beta)
+* @current version : 2.0.1 (beta)
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -99,8 +99,19 @@
 *    Changes:
 *       New Behavior - XrmServiceTookit.Soap.Fetch parameters change to work with asynchronous callback compared to 1.4.2 beta: XrmServiceToolkit.Soap.Fetch(fetchXml, fetchAll, callback)
 *       New Behavior - XrmServiceTookit.Soap.AddNotification is working with CRM 2013 using the out-of-box functionality. Still support CRM 2011
-*       New Fix - XrmServiceToolkit.Comon.GetObjectCodeType is now using metadata retrieval as a supported method
+*       New Fix - XrmServiceToolkit.Common.GetObjectCodeType is now using metadata retrieval as a supported method
 *       New Fix - The included jQuery has a line changed at the bottom <window.jQuery = jQuery;> $ is removed to work with CRM 2013 form
+*   Beta Release for CRM 2013
+**********************************************************************************************************
+*   Version: 2.0.1 (beta)
+*   Date: April, 2014
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       ---NOTE---Due to the changes for CRM 2013, please use the attached version of JSON2 and jQuery
+*       Tested Platform: IE11, IE10, latest Chrome, latest FireFox
+*    Changes:
+*       New Behavior - XrmServiceTookit.Soap.Fetch method will allow 'page' and 'count' parameter to limit the returned records.
+*       New Fix - XrmServiceToolkit.Soap.Fetch fix an error when passing difference formats of Fetch XML with/without '<fetch>..' statements
+*       New Fix - XrmServiceToolkit.Extension methods error when retrieving web resources
 *   Beta Release for CRM 2013
 **********************************************************************************************************
 */
@@ -115,6 +126,11 @@ XrmServiceToolkit = function () {
 };
 
 XrmServiceToolkit.Common = function () {
+
+    var alertMessage = function (message) {
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+    };
+    
     var guidsAreEqual = function (guid1, guid2) {
         /// <summary>
         /// Check if two guids are equal
@@ -203,7 +219,7 @@ XrmServiceToolkit.Common = function () {
         /// Object of the JavaScript error
         /// </param>
         /// <returns type="void" />
-        alert(error.message);
+        alertMessage(error.message);
     };
 
     var getObjectTypeCode = function (entityName) {
@@ -277,10 +293,12 @@ XrmServiceToolkit.Common = function () {
         else {
             var notificationsArea = document.getElementById('crmNotifications');
             if (notificationsArea === null || notificationsArea === undefined) {
-                alert('Cannot find the notification area'); return;
+                alertMessage('Cannot find the notification area');
+                return;
             }
             if (typeof notificationsArea.AddNotification !== "undefined" && typeof notificationsArea.control.AddNotification !== "undefined") {
-                alert('Add Notification is no longer supported'); return;
+                alertMessage('Add Notification is no longer supported');
+                return;
             }
             if (level === 1) {
                 //critical
@@ -313,7 +331,7 @@ XrmServiceToolkit.Common = function () {
                 } else if (typeof notificationsArea.control.SetNotifications !== "undefined") {
                     notificationsArea.control.SetNotifications(null, null);
                 } else {
-                    alert('Set Notification is no longer supported');
+                    alertMessage('Set Notification is no longer supported');
                 }
             }
         }     
@@ -415,6 +433,11 @@ XrmServiceToolkit.Common = function () {
 
 XrmServiceToolkit.Rest = function () {
     // Private members
+    
+    var alertMessage = function (message) {
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+    };
+    
     var htmlEncode = function (s) {
         if (s === null || s === "" || s === undefined) return s;
         for (var count = 0, buffer = "", hEncode = "", cnt = 0; cnt < s.length; cnt++) {
@@ -639,7 +662,7 @@ XrmServiceToolkit.Rest = function () {
                 // The fallback.
                 return new ActiveXObject('MSXML2.XMLHTTP.3.0');
             } catch (e) {
-                alert('This browser is not AJAX enabled.');
+                alertMessage('This browser is not AJAX enabled.');
                 return null;
             }
         }
@@ -1090,6 +1113,10 @@ XrmServiceToolkit.Rest = function () {
 
 XrmServiceToolkit.Soap = function () {
 
+    var alertMessage = function(message) {
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+    };
+    
     var htmlEncode = function (s) {
         if (s === null || s === "" || s === undefined) return s;
         for (var count = 0, buffer = "", hEncode = "", cnt = 0; cnt < s.length; cnt++) {
@@ -1310,7 +1337,7 @@ XrmServiceToolkit.Soap = function () {
                 // The fallback.
                 return new ActiveXObject('MSXML2.XMLHTTP.3.0');
             } catch (e) {
-                alert('This browser is not AJAX enabled.');
+                 alertMessage('This browser is not AJAX enabled.');
                 return null;
             }
         }
@@ -1605,7 +1632,7 @@ XrmServiceToolkit.Soap = function () {
                 xmlDoc.loadXML(txt);
             }
         } catch (e) {
-            alert("Cannot convert the XML string to a cross-browser XML object.");
+            alertMessage("Cannot convert the XML string to a cross-browser XML object.");
         }
 
         return xmlDoc;
@@ -1630,7 +1657,7 @@ XrmServiceToolkit.Soap = function () {
                 }
             }
         } catch (e) {
-            alert("Cannot convert the XML to a string.");
+            alertMessage("Cannot convert the XML to a string.");
         }
         return xmlString;
     };
@@ -1834,7 +1861,7 @@ XrmServiceToolkit.Soap = function () {
         var moreFetchXml =
                 [
                     "<fetch mapping='logical' page='" + pageNumber + "' count='5000' paging-cookie='" + pageCookie + "'>",
-                    fetchCore,
+                    fetchCoreXml,
                     "</fetch>"
                 ].join("");
 
@@ -1876,7 +1903,7 @@ XrmServiceToolkit.Soap = function () {
                     newPageCookie = jQuery(moreResultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
                 }
 
-                fetchMore(fetchCore, pageNumber, newPageCookie, fetchResults);
+                fetchMore(fetchCoreXml, pageNumber, newPageCookie, fetchResults);
             } else {
                 return fetchResults;
             }
@@ -1897,12 +1924,12 @@ XrmServiceToolkit.Soap = function () {
         /// </param>
 
         var isAggregate = (fetchCore.indexOf("aggregate") !== -1);
-        if (fetchCore.slice(0, 6) === "<fetch")
-        {
+        var isLimitedReturn = (fetchCore.indexOf("page='1'") !== -1 && fetchCore.indexOf("count='") !== -1);
+        var fetchXml;
+        if (fetchCore.slice(0, 6) === "<fetch" && isLimitedReturn === false) {
             var fetchEntity = jQuery(xmlParser(fetchCore)).find("entity");
 
-            if (fetchEntity.length < 1)
-            {
+            if (fetchEntity.length < 1) {
                 throw new Error("XrmServiceToolkit.Fetch: No 'entity' node in the provided FetchXML.");
             }
 
@@ -1911,26 +1938,64 @@ XrmServiceToolkit.Soap = function () {
             try {
                 fetchCore = xmlToString(fetchCoreDom);
             }
-            catch (error)
-            {
-                if (fetchCoreDom.xml)
-                {
+            catch (error) {
+                if (fetchCoreDom.xml) {
                     fetchCore = fetchCoreDom.xml;
                 }
-                else
-                {
+                else {
                     throw new Error("XrmServiceToolkit.Fetch: This client does not provide the necessary XML features to continue.");
                 }
             }
-        }
 
-        var fetchXml =
+            fetchXml =
+               [
+                   "<fetch mapping='logical'",
+                   (isAggregate) ? " aggregate='true'>" : ">",
+                   fetchCore,
+                   "</fetch>"
+               ].join("");
+        }
+        else if (fetchCore.slice(0, 6) === "<fetch" && isLimitedReturn === true) {
+            fetchXml = fetchCore;
+        }
+        else if (fetchCore.slice(0, 6) === "<fetch") {
+            var fetchEntity = jQuery(xmlParser(fetchCore)).find("entity");
+
+            if (fetchEntity.length < 1) {
+                throw new Error("XrmServiceToolkit.Fetch: No 'entity' node in the provided FetchXML.");
+            }
+
+            var fetchCoreDom = fetchEntity;
+
+            try {
+                fetchCore = xmlToString(fetchCoreDom);
+            }
+            catch (error) {
+                if (fetchCoreDom.xml) {
+                    fetchCore = fetchCoreDom.xml;
+                }
+                else {
+                    throw new Error("XrmServiceToolkit.Fetch: This client does not provide the necessary XML features to continue.");
+                }
+            }
+
+            fetchXml =
+               [
+                   "<fetch mapping='logical'",
+                   (isAggregate) ? " aggregate='true'>" : ">",
+                   fetchCore,
+                   "</fetch>"
+               ].join("");
+        }
+        else {
+             fetchXml =
                 [
                     "<fetch mapping='logical'",
                     (isAggregate)? " aggregate='true'>" : ">",
                     fetchCore,
                     "</fetch>"
                 ].join("");
+        }
 
         var msgBody = "<query i:type='a:FetchExpression' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>" +
                             "<a:Query>" +
@@ -1941,40 +2006,35 @@ XrmServiceToolkit.Soap = function () {
 
         return doRequest(msgBody, "RetrieveMultiple", !!callback, function (resultXml) {
             var fetchResult;
+            var moreRecords;
             if (jQuery(resultXml).find("a\\:Entities").length != 0) {
                 fetchResult = jQuery(resultXml).find("a\\:Entities").eq(0)[0];
             } else {
                 fetchResult = jQuery(resultXml).find("Entities").eq(0)[0]; //chrome could not load node
             }
 
-            if (jQuery(resultXml).find("a\\:MoreRecords").length != 0)
-            {
+            if (jQuery(resultXml).find("a\\:MoreRecords").length != 0) {
                 moreRecords = jQuery(resultXml).find("a\\:MoreRecords").eq(0)[0].firstChild.text === "true";
-            } else
-            {
+            } else {
                 moreRecords = jQuery(resultXml).find("MoreRecords").eq(0)[0].firstChild.text === "true"; //chrome
             }
 
             var fetchResults = [];
 
-            for (var ii = 0; ii < fetchResult.childNodes.length; ii++)
-            {
+            for (var ii = 0; ii < fetchResult.childNodes.length; ii++) {
                 var entity = new businessEntity();
 
                 entity.deserialize(fetchResult.childNodes[ii]);
                 fetchResults.push(entity);
             }
 
-            if (fetchAll && moreRecords)
-            {
+            if (fetchAll && moreRecords) {
                 var pageNumber = 2;
                 var pageCookie;
 
-                if (jQuery(resultXml).find("a\\:PagingCookie").length != 0)
-                {
+                if (jQuery(resultXml).find("a\\:PagingCookie").length != 0) {
                     pageCookie = jQuery(resultXml).find("a\\:PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
-                } else
-                {
+                } else {
                     pageCookie = jQuery(resultXml).find("PagingCookie").eq(0)[0].firstChild.text.replace(/\"/g, '\'').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&quot;');
                 }
 
@@ -2163,13 +2223,13 @@ XrmServiceToolkit.Soap = function () {
 
         var xml =
                 [
-                    "   <entity name='", entityName, "'>",
+                    "<entity name='", entityName, "'>",
                            joinArray("<attribute name='", columnSet, "' />"),
                            joinArray("<order attribute='", orderBy, "' />"),
-                    "      <filter>",
+                        "<filter>",
                               joinConditionPair(attributes, values),
-                    "      </filter>",
-                    "   </entity>"
+                        "</filter>",
+                    "</entity>"
                 ].join("");
 
         return fetch(xml, false, callback);
@@ -2204,13 +2264,13 @@ XrmServiceToolkit.Soap = function () {
         columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
 
         var fetchCore = [
-                    "   <entity name='", entityName, "'>",
+                    "<entity name='", entityName, "'>",
                            joinArray("<attribute name='", columnSet, "' />"),
                            joinArray("<order attribute='", orderBy, "' />"),
-                    "      <filter>",
+                        "<filter>",
                               joinConditionPair(attributes, values),
-                    "      </filter>",
-                    "   </entity>"
+                        "</filter>",
+                    "</entity>"
         ].join("");
 
 
@@ -3271,6 +3331,45 @@ XrmServiceToolkit.Soap = function () {
 XrmServiceToolkit.Extension = function () {
     // jQuery Load Help function to add tooltip for attribute in CRM 2011. Unsupported because of the usage of DOM object edit.
     //****************************************************
+    var alertMessage = function (message) {
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+    };
+
+    var context = function () {
+        ///<summary>
+        /// Private function to the context object.
+        ///</summary>
+        ///<returns>Context</returns>
+        var oContext;
+        if (typeof window.GetGlobalContext != "undefined") {
+            oContext = window.GetGlobalContext();
+        }
+        else {
+            if (typeof Xrm != "undefined") {
+                oContext = Xrm.Page.context;
+            }
+            else if (typeof window.parent.Xrm != "undefined") {
+                oContext = window.parent.Xrm.Page.context;
+            }
+            else {
+                throw new Error("Context is not available.");
+            }
+        }
+        return oContext;
+    };
+
+    var getClientUrl = function () {
+        ///<summary>
+        /// Private function to return the server URL from the context
+        ///</summary>
+        ///<returns>String</returns>
+        var serverUrl = typeof context().getClientUrl != 'undefined' ? context().getClientUrl() : context().getServerUrl();
+        if (serverUrl.match(/\/$/)) {
+            serverUrl = serverUrl.substring(0, serverUrl.length - 1);
+        }
+        return serverUrl;
+    };
+    
     var jQueryXrmFieldTooltip = function (filename, bDisplayImg) {
         ///<summary>
         /// A generic configurable method to add tooltip to crm 2011 field. 
@@ -3296,12 +3395,13 @@ XrmServiceToolkit.Extension = function () {
         */
 
         if (Xrm.Page.ui.setFormNotification !== undefined) {
-            alert('XrmServiceToolkit.Extension.JQueryXrmFieldTooltip is not supported in CRM2013.\nPlease use the out of box functionality');
+            alertMessage('XrmServiceToolkit.Extension.JQueryXrmFieldTooltip is not supported in CRM2013.\nPlease use the out of box functionality');
             return;
         }
 
         if (typeof jQuery === 'undefined') {
-            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            var errorMessage = ('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            alertMessage(errorMessage);
             return;
         }
 
@@ -3309,13 +3409,13 @@ XrmServiceToolkit.Extension = function () {
 
         jQuery.ajax({
             type: "GET",
-            url: "../WebResources/" + filename,
+            url: getClientUrl() + "/WebResources/" + filename,
             dataType: "xml",
             success: parseHelpXml,
             // ReSharper disable UnusedParameter
             error: function (xmlHttpRequest, textStatus, errorThrown) {
                 // ReSharper restore UnusedParameter
-                alert('Something is wrong to setup the tooltip for the fields. Please contact your administrator');
+                alertMessage('Something is wrong to setup the tooltip for the fields. Please contact your administrator');
             }
         }); //end Ajax
 
@@ -3350,7 +3450,7 @@ XrmServiceToolkit.Extension = function () {
         /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
         /// </param>
         if (typeof jQuery === 'undefined') {
-            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            alertMessage('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
             return;
         }
 
@@ -3358,13 +3458,13 @@ XrmServiceToolkit.Extension = function () {
 
         jQuery.ajax({
             type: "GET",
-            url: "../WebResources/" + filename,
+            url: getClientUrl() + "/WebResources/" + filename,
             dataType: "xml",
             success: init,
             // ReSharper disable UnusedParameter
             error: function (xmlHttpRequest, textStatus, errorThrown) {
                 // ReSharper restore UnusedParameter
-                alert('Something is wrong to setup the dependent picklist. Please contact your administrator');
+                alertMessage('Something is wrong to setup the dependent picklist. Please contact your administrator');
             }
         }); //end Ajax
 
@@ -3450,7 +3550,7 @@ XrmServiceToolkit.Extension = function () {
                         var options = dependentOptionSet.options[os];
                         var optionsToShow = options.showOptions;
                         /* Find the Options that corresponds to the value of the parent field. */
-                        if (parent.getValue() === options.value) {
+                        if (parent.getValue().toString() === options.value.toString()) {
                             controls = child.controls.get(); /*Enable the field and set the options*/
                             for (ctrl in controls) {
                                 controls[ctrl].setDisabled(false);
@@ -3504,7 +3604,7 @@ XrmServiceToolkit.Extension = function () {
         /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
         /// </param>
         if (typeof jQuery === 'undefined') {
-            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            alertMessage('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
             return;
         }
 
@@ -3512,13 +3612,13 @@ XrmServiceToolkit.Extension = function () {
 
         jQuery.ajax({
             type: "GET",
-            url: "../WebResources/" + filename,
+            url: getClientUrl() + "/WebResources/" + filename,
             dataType: "xml",
             success: init,
             // ReSharper disable UnusedParameter
             error: function (xmlHttpRequest, textStatus, errorThrown) {
                 // ReSharper restore UnusedParameter
-                alert('Something is wrong to setup the custom filter view. Please contact your administrator');
+                alertMessage('Something is wrong to setup the custom filter view. Please contact your administrator');
             }
         }); //end Ajax
 
@@ -3561,7 +3661,7 @@ XrmServiceToolkit.Extension = function () {
                         var dynamicControlType = Xrm.Page.getControl(jQuery(dynamic).attr('name')).getControlType();
                         var fieldValueType = jQuery(dynamic).attr('fieldvaluetype'); //for optionset, name might be used to filter
                         if (Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue() === null) {
-                            alert(jQuery(dynamic).attr('name') + ' does not have a value. Please put validation logic on the field change to call this function. Only use XrmServiceToolkit.Extension.JQueryXrmCustomFilterView when the field has a value.');
+                            alertMessage(jQuery(dynamic).attr('name') + ' does not have a value. Please put validation logic on the field change to call this function. Only use XrmServiceToolkit.Extension.JQueryXrmCustomFilterView when the field has a value.');
                             return;
                         }
                         var dynamicValue = null;
@@ -3576,13 +3676,13 @@ XrmServiceToolkit.Extension = function () {
                                 dynamicValue = (fieldValueType != null && fieldValueType === 'name') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].id;
                                 break;
                             default:
-                                alert(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
+                                alertMessage(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
                                 break;
                         }
 
                         var operator = jQuery(dynamic).attr('operator');
                         if (operator === null) {
-                            alert('operator is missing in the configuration file. Please fix the issue');
+                            alertMessage('operator is missing in the configuration file. Please fix the issue');
                             return;
                         }
                         var dynamicString = jQuery(dynamic).attr('fetchnote');
@@ -3638,7 +3738,7 @@ XrmServiceToolkit.Extension = function () {
                     return xmlString;
                 }
             } catch (e) {
-                alert("Cannot convert the XML to a string.");
+                alertMessage("Cannot convert the XML to a string.");
             }
             return xmlString;
         }
@@ -3657,12 +3757,12 @@ XrmServiceToolkit.Extension = function () {
         /// </param>
 
         if (Xrm.Page.ui.setFormNotification !== undefined) {
-            alert('XrmServiceToolkit.Extension.JQueryXrmFormatNotesControl is not supported in CRM2013');
+            alertMessage('XrmServiceToolkit.Extension.JQueryXrmFormatNotesControl is not supported in CRM2013');
             return;
         }
         
         if (typeof jQuery === 'undefined') {
-            alert('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            alertMessage('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
             return;
         }
 

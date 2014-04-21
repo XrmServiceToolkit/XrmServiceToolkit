@@ -20,8 +20,8 @@
         /**
         * MSCRM 2011 Web Service Toolkit UnitTest and Example for JavaScript
         * @author Jaimie Ji
-        * @current version : 2.0.0 (beta)
-        *   Date: April, 2013
+        * @current version : 2.0.1 (beta)
+        *   Date: April, 2014
         *   CRM 2013 Beta release 
         *   Development Tool: VS2012, CRM2013 SDK beta release
         * Credits:
@@ -474,6 +474,20 @@
                 equal(fetchedContacts.length, 1, "only one record should be returned when doing aggregation.");
                 equal(fetchedContacts[0].attributes['count'].formattedValue, "1", "only one contact record would match the id.");
             });
+            
+            test("Test XrmServiceToolkit.Soap.Fetch() method to do a query with limited return", function () {
+
+                var fetchXml =
+                  "<fetch mapping='logical' page='1' count='5'>" +
+                     "<entity name='account'>" +
+                        "<attribute name='accountid' />" +
+                     "</entity>" +
+                  "</fetch>";
+
+                var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
+
+                equal(fetchedContacts.length, 5, "only five records should be returned when doing limited fetch.");
+            });
 
             test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using one criterion", function () {
                 var queryOptions = {
@@ -687,7 +701,7 @@
 
             test("Test XrmServiceToolkit.Soap.RetrieveEntityMetadata() method to return CRM Metadata for a certain entity", function () {
 
-                var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Entity"], "account", true);
+                var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Attributes"], "salesorder", true);
                 ok(entityMetadata.length == 1, "The Metadata has been returned for the account entity");
 
             });
