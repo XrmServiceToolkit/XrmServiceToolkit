@@ -128,7 +128,7 @@ XrmServiceToolkit = function () {
 XrmServiceToolkit.Common = function () {
 
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
     };
     
     var guidsAreEqual = function (guid1, guid2) {
@@ -435,7 +435,7 @@ XrmServiceToolkit.Rest = function () {
     // Private members
     
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
     };
     
     var htmlEncode = function (s) {
@@ -1114,7 +1114,7 @@ XrmServiceToolkit.Rest = function () {
 XrmServiceToolkit.Soap = function () {
 
     var alertMessage = function(message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
     };
     
     var htmlEncode = function (s) {
@@ -3332,7 +3332,7 @@ XrmServiceToolkit.Extension = function () {
     // jQuery Load Help function to add tooltip for attribute in CRM 2011. Unsupported because of the usage of DOM object edit.
     //****************************************************
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertyDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
     };
 
     var context = function () {
