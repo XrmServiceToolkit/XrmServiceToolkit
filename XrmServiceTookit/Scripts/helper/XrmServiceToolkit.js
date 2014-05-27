@@ -112,6 +112,8 @@
 *       New Behavior - XrmServiceTookit.Soap.Fetch method will allow 'page' and 'count' parameter to limit the returned records.
 *       New Fix - XrmServiceToolkit.Soap.Fetch fix an error when passing difference formats of Fetch XML with/without '<fetch>..' statements
 *       New Fix - XrmServiceToolkit.Extension methods error when retrieving web resources
+*       New Fix - XrmServiceToolkit.Extension.JQueryXrmDependentOptionSet error to parse returned values
+*       New Fix - XrmServiceToolkit.Extension.JQueryXrmCustomFilterView error to parse xml returned
 *   Beta Release for CRM 2013
 **********************************************************************************************************
 */
@@ -3567,7 +3569,7 @@ XrmServiceToolkit.Extension = function () {
                             for (var validOptionIndex in childFieldOptions) {
                                 var optionDataValue = childFieldOptions[validOptionIndex].value;
 
-                                if (currentChildFieldValue === optionDataValue) {
+                                if (currentChildFieldValue === parseInt(optionDataValue)) {
                                     bCurrentValueIsValid = true;
                                     break;
                                 }
@@ -3726,7 +3728,7 @@ XrmServiceToolkit.Extension = function () {
             try {
                 if (xmlData != null && xmlData.length > 0) {
                     //IE
-                    if (window.ActiveXObject) {
+                    if (window.ActiveXObject && typeof xmlData[0].xml != "undefined") {
                         xmlString = xmlData[0].xml;
                     }
                     // code for Mozilla, Firefox, Opera, etc.
