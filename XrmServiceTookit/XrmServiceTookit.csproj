@@ -15,14 +15,10 @@
     <AssemblyName>XrmServiceTookit</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <UseIISExpress>false</UseIISExpress>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccAuxPath>
-    </SccAuxPath>
-    <SccProvider>
-    </SccProvider>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -76,6 +72,7 @@
     <Content Include="Scripts\helper\TestPage.js" />
     <Content Include="Scripts\helper\XrmPageTemplate.js" />
     <Content Include="Scripts\helper\XrmServiceToolkit.js" />
+    <Content Include="Scripts\helper\XrmServiceToolkit.min.js" />
     <Content Include="Scripts\qunit\qunit.css" />
     <Content Include="Scripts\qunit\qunit.js" />
     <Content Include="Scripts\typescript\XrmServiceToolkit.d.ts" />
