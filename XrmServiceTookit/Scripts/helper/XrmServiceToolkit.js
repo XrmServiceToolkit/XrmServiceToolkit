@@ -6,7 +6,7 @@
 * MSCRM 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
 * @author David Berry
-* @current version : 2.1
+* @current version : 2.2
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -122,6 +122,19 @@
 *    Changes:
 *       Performance Refactor
 *       New Fix - XrmServiceToolkit.Common.DisableAllControlsInTab to support CRM2013 changes
+*   Beta Release for CRM 2013
+**********************************************************************************************************
+*   Version: 2.2
+*   Date: April, 2015
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       ---NOTE---Due to the changes for CRM 2013, please use the attached version of JSON2 and jQuery
+*       Tested Platform: IE11, IE10, latest Chrome, latest FireFox
+*    Changes:
+*       CRM 2015 release
+*       New Fix - Error Handling
+*       New Fix - XrmServiceToolkit.Soap.Fetch aggregate fix
+*       New Fix - XrmServiceToolkit.Soap.Fetch distinct support
+*       New Fix - Aliased Values Handling
 *   Beta Release for CRM 2013
 **********************************************************************************************************
 */
@@ -389,7 +402,7 @@ XrmServiceToolkit.Common = function () {
         if (tabControl != null) {
             Xrm.Page.ui.controls.forEach(
              function (control) {
-                 if (control.getParent() !== null && control.getParent().getParent() != null && control.getParent().getParent() === tabControl && control.getControlType() != "subgrid") {
+                 if (control.getParent() !== null && control.getParent().getParent() != null && control.getParent().getParent() === tabControl && control.getControlType() !== "subgrid") {
                      control.setDisabled(true);
                  }
              });
@@ -413,7 +426,7 @@ XrmServiceToolkit.Common = function () {
                 if (section.getLabel().toLowerCase() === sectionLabel.toLowerCase()) {
                     Xrm.Page.ui.controls.forEach(
                         function (control) {
-                            if (control.getParent() !== null && control.getParent().getLabel() === sectionLabel && control.getControlType() != "subgrid") {
+                            if (control.getParent() !== null && control.getParent().getLabel() === sectionLabel && control.getControlType() !== "subgrid") {
                                 control.setDisabled(true);
                             }
                         });
@@ -523,6 +536,9 @@ XrmServiceToolkit.Rest = function () {
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
         }
+        else if (typeof GetGlobalContext != "undefined") {
+            oContext = GetGlobalContext(); 
+        }
         else {
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
@@ -565,7 +581,7 @@ XrmServiceToolkit.Rest = function () {
         /// The XMLHttpRequest response that returned an error.
         ///</param>
         ///<returns>Error</returns>
-        return new Error("Error : " +
+        throw new Error("Error : " +
         req.status + ": " +
         req.statusText + ": " +
         JSON.parse(req.responseText).error.message.value);
@@ -984,7 +1000,7 @@ XrmServiceToolkit.Rest = function () {
 
         var optionsString = '';
         if (options != null) {
-            if (options.charAt(0) != "?") {
+            if (options.charAt(0) !== "?") {
                 optionsString = "?" + options;
             }
             else {
@@ -1298,7 +1314,7 @@ XrmServiceToolkit.Soap = function () {
 
     var encodeValue = function (value) {
         // Handle GUIDs wrapped in braces
-        if (typeof value == typeof "" && value.slice(0, 1) == "{" && value.slice(-1) == "}") {
+        if (typeof value == typeof "" && value.slice(0, 1) === "{" && value.slice(-1) === "}") {
             value = value.slice(1, -1);
         }
 
@@ -1317,6 +1333,9 @@ XrmServiceToolkit.Soap = function () {
         var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
+        }
+        else if (typeof GetGlobalContext != "undefined") {
+            oContext = GetGlobalContext();
         }
         else {
             if (typeof Xrm != "undefined") {
@@ -1433,7 +1452,7 @@ XrmServiceToolkit.Soap = function () {
     var isNodeNull = function (node) {
         if (node == null)
         { return true; }
-        if ((node.attributes.getNamedItem("i:nil") != null) && (node.attributes.getNamedItem("i:nil").value == "true"))
+        if ((node.attributes.getNamedItem("i:nil") != null) && (node.attributes.getNamedItem("i:nil").value === "true"))
         { return true; }
         return false;
     };
@@ -1554,27 +1573,27 @@ XrmServiceToolkit.Soap = function () {
         serialize: function () {
             var xml = ["<b:value i:type='a:Entity'>"];
             xml.push('<a:Attributes xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic">');
+            var attributes = this.attributes;
+            for (var attributeName in attributes) {
+                if (attributes.hasOwnProperty(attributeName)) {
+                    var attribute = attributes[attributeName];
 
-            for (var attributeName in this.attributes) {
-                var attribute = this.attributes[attributeName];
+                    xml.push("<a:KeyValuePairOfstringanyType>");
+                    xml.push("<b:key>", attributeName, "</b:key>");
 
-                xml.push("<a:KeyValuePairOfstringanyType>");
-                xml.push("<b:key>", attributeName, "</b:key>");
-
-                if (attribute === null || attribute.value === null) {
-                    xml.push("<b:value i:nil='true' />");
-                }
-                else {
-                    var sType = (!attribute.type)
+                    if (attribute === null || attribute.value === null) {
+                        xml.push("<b:value i:nil='true' />");
+                    } else {
+                        var sType = (!attribute.type)
                             ? typeof attribute
                             : crmXmlEncode(attribute.type);
-                    var value;
-                    var encodedValue;
-                    var id;
-                    var encodedId;
-                    var logicalName;
-                    var encodedLogicalName;
-                    switch (sType) {
+                        var value;
+                        var encodedValue;
+                        var id;
+                        var encodedId;
+                        var logicalName;
+                        var encodedLogicalName;
+                        switch (sType) {
                         case "OptionSetValue":
                             value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
                             encodedValue = encodeValue(value);
@@ -1586,7 +1605,7 @@ XrmServiceToolkit.Soap = function () {
                             xml.push("<b:value i:type='a:EntityCollection'>");
                             xml.push("<a:Entities>");
                             value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var collections = isArray(value) ? value : [value];
+                            var collections = Array.isArray(value) ? value : [value];
 
                             for (var i = 0, collectionLengh = collections.length; i < collectionLengh; i++) {
                                 var item = collections[i];
@@ -1661,9 +1680,10 @@ XrmServiceToolkit.Soap = function () {
                             sType = (typeof value === "object" && value.getTime) ? "dateTime" : sType;
                             xml.push("<b:value i:type='c:", sType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>", encodedValue, "</b:value>");
                             break;
+                        }
                     }
+                    xml.push("</a:KeyValuePairOfstringanyType>");
                 }
-                xml.push("</a:KeyValuePairOfstringanyType>");
             }
 
             xml.push("</a:Attributes><a:EntityState i:nil='true' />");
@@ -1698,6 +1718,17 @@ XrmServiceToolkit.Soap = function () {
                             var tempNode = tempParentNodeChildNodes[1];
                             // Determine the Type of Attribute value we should expect
                             var sType = tempNode.attributes.getNamedItem("i:type").value;
+
+                            // check for AliasedValue
+                            if (sType.replace('c:', '').replace('a:', '') === "AliasedValue") {
+                                // reset the type to the actual attribute type
+                                var subNode = tempNode.childNodes[2];
+                                sType = subNode.attributes.getNamedItem("i:type").value;
+
+                                //sKey = getNodeText(tempNode.childNodes[1]) + "." + getNodeText(tempNode.childNodes[0]);
+                                // reset the node to the AliasedValue value node
+                                tempNode = subNode;
+                            }
 
                             var entRef;
                             var entCv;
@@ -1766,20 +1797,8 @@ XrmServiceToolkit.Soap = function () {
                                     else if (entCv.type === "boolean") {
                                         entCv.value = (getNodeText(tempNode) === 'false') ? false : true;
                                     }
-                                        //@Credit: Thanks for Tanguy92's code from CodePlex
-                                    else if (entCv.type === "AliasedValue") {
-                                        var currentNode = tempNode.childNodes[2];
-                                        entCv.value = getNodeText(currentNode);
-                                        if (currentNode.attributes.getNamedItem("i:type").nodeValue.split(":")[1] === "a:EntityReference") {
-                                            entCv = new xrmEntityReference();
-                                            entCv.type = "EntityReference";
-                                            entCv.id = getNodeText(currentNode.childNodes[0]);
-                                            entCv.logicalName = getNodeText(currentNode.childNodes[1]);
-                                            entCv.name = getNodeText(currentNode.childNodes[2]);
-                                        }
-                                    }
                                     else {
-                                        entCv.value = getNodeText(tempParentNode.childNodes[1]);
+                                        entCv.value = getNodeText(tempNode);
                                     }
                                     obj[sKey] = entCv;
                                     break;
@@ -1814,6 +1833,66 @@ XrmServiceToolkit.Soap = function () {
         }
     };
 
+    var getError = function (resp) {
+        //Error descriptions come from http://support.microsoft.com/kb/193625
+
+        if (resp.status === 12029)
+        { throw new Error("The attempt to connect to the server failed."); }
+        if (resp.status === 12007)
+        { throw new Error("The server name could not be resolved."); }
+        var faultXml = resp.responseXML;
+
+        var errorMessage = "Unknown (unable to parse the fault)";
+        if (faultXml !== null && typeof faultXml == "object") {
+
+            var faultstring = null;
+            var errorCode = null;
+
+            var bodyNode = faultXml.firstChild.firstChild;
+
+            //Retrieve the fault node
+            for (var i = 0; i < bodyNode.childNodes.length; i++) {
+                var node = bodyNode.childNodes[i];
+
+                //NOTE: This comparison does not handle the case where the XML namespace changes
+                if ("s:Fault" === node.nodeName) {
+                    for (var j = 0; j < node.childNodes.length; j++) {
+                        var testNode = node.childNodes[j];
+                        if ("faultstring" === testNode.nodeName) {
+                            faultstring = getNodeText(testNode);
+                        }
+                        if ("detail" === testNode.nodeName) {
+                            for (var k = 0; k < testNode.childNodes.length; k++) {
+                                var orgServiceFault = testNode.childNodes[k];
+                                if ("OrganizationServiceFault" === orgServiceFault.nodeName) {
+                                    for (var l = 0; l < orgServiceFault.childNodes.length; l++) {
+                                        var errorCodeNode = orgServiceFault.childNodes[l];
+                                        if ("ErrorCode" === errorCodeNode.nodeName) {
+                                            errorCode = getNodeText(errorCodeNode);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    break;
+                }
+
+            }
+        }
+        if (errorCode != null && faultstring != null) {
+            errorMessage = "Error Code:" + errorCode + " Message: " + faultstring;
+        }
+        else {
+            if (faultstring != null) {
+                errorMessage = faultstring;
+            }
+        }
+        throw new Error(errorMessage);
+    };
+
     var doRequest = function (soapBody, requestType, async, internalCallback) {
         async = async || false;
 
@@ -1837,7 +1916,7 @@ XrmServiceToolkit.Soap = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState == 4 /* complete */) {
+                if (req.readyState === 4 /* complete */) {
                     req.onreadystatechange = null; //Addresses potential memory leak issue with IE
                     if (req.status === 200) { // "OK"          
                         var doc = req.responseXML;
@@ -1854,7 +1933,7 @@ XrmServiceToolkit.Soap = function () {
         }
         else {
             req.send(soapXml);
-            if (req.status == 200) {
+            if (req.status === 200) {
                 var doc = req.responseXML;
                 try { setSelectionNamespaces(doc); } catch (e) { }
                 var result = doc;
@@ -1866,66 +1945,6 @@ XrmServiceToolkit.Soap = function () {
         // ReSharper disable NotAllPathsReturnValue
     };
     // ReSharper restore NotAllPathsReturnValue
-
-    var getError = function (resp) {
-        //Error descriptions come from http://support.microsoft.com/kb/193625
-
-        if (resp.status == 12029)
-        { return new Error("The attempt to connect to the server failed."); }
-        if (resp.status == 12007)
-        { return new Error("The server name could not be resolved."); }
-        var faultXml = resp.responseXML;
-
-        var errorMessage = "Unknown (unable to parse the fault)";
-        if (typeof faultXml == "object") {
-
-            var faultstring = null;
-            var errorCode = null;
-
-            var bodyNode = faultXml.firstChild.firstChild;
-
-            //Retrieve the fault node
-            for (var i = 0; i < bodyNode.childNodes.length; i++) {
-                var node = bodyNode.childNodes[i];
-
-                //NOTE: This comparison does not handle the case where the XML namespace changes
-                if ("s:Fault" == node.nodeName) {
-                    for (var j = 0; j < node.childNodes.length; j++) {
-                        var testNode = node.childNodes[j];
-                        if ("faultstring" == testNode.nodeName) {
-                            faultstring = getNodeText(testNode);
-                        }
-                        if ("detail" == testNode.nodeName) {
-                            for (var k = 0; k < testNode.childNodes.length; k++) {
-                                var orgServiceFault = testNode.childNodes[k];
-                                if ("OrganizationServiceFault" == orgServiceFault.nodeName) {
-                                    for (var l = 0; l < orgServiceFault.childNodes.length; l++) {
-                                        var errorCodeNode = orgServiceFault.childNodes[l];
-                                        if ("ErrorCode" == errorCodeNode.nodeName) {
-                                            errorCode = getNodeText(errorCodeNode);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-                    break;
-                }
-
-            }
-        }
-        if (errorCode != null && faultstring != null) {
-            errorMessage = "Error Code:" + errorCode + " Message: " + faultstring;
-        }
-        else {
-            if (faultstring != null) {
-                errorMessage = faultstring;
-            }
-        }
-        return new Error(errorMessage);
-    };
 
     var sCreate = function (be, callback) {
         ///<summary>
@@ -2142,12 +2161,17 @@ XrmServiceToolkit.Soap = function () {
                    "</fetch>"
                 ].join("");
         } else {
-            var isAggregate = (fetchCore.indexOf("aggregate") !== -1);
-            var isLimitedReturn = (fetchCore.indexOf("page='1'") !== -1 && fetchCore.indexOf("count='") !== -1);
-            var fetchEntity;
+            var isAggregate = (fetchCore.indexOf("aggregate=") !== -1);
+            var isLimitedReturn = (fetchCore.indexOf("page='1'") !== -1 && fetchCore.indexOf("count='") !== -1);         
 
+            var distinctPos = fetchCore.indexOf("distinct=");
+            var isDistinct = (distinctPos !== -1);
+            var valQuotes = fetchCore.substring(distinctPos + 9, distinctPos + 10);
+            var distinctValue = isDistinct
+                ? fetchCore.substring(fetchCore.indexOf("distinct=") + 10, fetchCore.indexOf(valQuotes, fetchCore.indexOf("distinct=") + 10))
+                : "false";
             var xmlDoc = xmlParser(fetchCore);
-            fetchEntity = selectSingleNode(xmlDoc, "//entity");
+            var fetchEntity = selectSingleNode(xmlDoc, "//entity");
             if (fetchEntity === null) {
                 throw new Error("XrmServiceToolkit.Fetch: No 'entity' node in the provided FetchXML.");
             }
@@ -2156,7 +2180,7 @@ XrmServiceToolkit.Soap = function () {
                 fetchCore = xmlToString(fetchCoreDom).replace(/\"/g, "'");
             }
             catch (error) {
-                if (fetchCoreDom.xml) {
+                if (fetchCoreDom !== undefined && fetchCoreDom.xml) {
                     fetchCore = fetchCoreDom.xml.replace(/\"/g, "'");
                 }
                 else {
@@ -2167,7 +2191,7 @@ XrmServiceToolkit.Soap = function () {
             if (!isAggregate && !isLimitedReturn) {
                 fetchXml =
                  [
-                     "<fetch mapping='logical' >",
+                     "<fetch mapping='logical' distinct='"+ (isDistinct ? distinctValue : "false") +"' >",
                      fetchCore,
                      "</fetch>"
                  ].join("");
@@ -2348,7 +2372,7 @@ XrmServiceToolkit.Soap = function () {
     var joinArray = function (prefix, array, suffix) {
         var output = [];
         for (var i = 0, ilength = array.length; i < ilength; i++) {
-            if (array[i] != '' && array[i] != undefined) {
+            if (array[i] !== "" && array[i] != undefined) {
                 output.push(prefix, array[i], suffix);
             }
         }
@@ -2358,19 +2382,22 @@ XrmServiceToolkit.Soap = function () {
     var joinConditionPair = function (attributes, values) {
         var output = [];
         for (var i = 0, ilength = attributes.length; i < ilength; i++) {
-            if (attributes[i] != '') {
-                if (typeof values[i] == typeof []) {
+            if (attributes[i] !== "") {
+                var value1 = values[i];
+                if (typeof value1 == typeof []) {
                     output.push("<condition attribute='", attributes[i], "' operator='in' >");
 
-                    for (var valueIndex in values[i]) {
-                        var value = encodeValue(values[i][valueIndex]);
-                        output.push("<value>" + value + "</value>");
+                    for (var valueIndex in value1) {
+                        if (value1.hasOwnProperty(valueIndex)) {
+                            var value = encodeValue(value1[valueIndex]);
+                            output.push("<value>" + value + "</value>");
+                        }
                     }
 
                     output.push("</condition>");
                 }
-                else if (typeof values[i] == typeof "") {
-                    output.push("<condition attribute='", attributes[i], "' operator='eq' value='", encodeValue(values[i]), "' />");
+                else if (typeof value1 == typeof "") {
+                    output.push("<condition attribute='", attributes[i], "' operator='eq' value='", encodeValue(value1), "' />");
                 }
             }
         }
@@ -2378,7 +2405,7 @@ XrmServiceToolkit.Soap = function () {
     };
 
     var isArray = function (input) {
-        return input.constructor.toString().indexOf("Array") != -1;
+        return input.constructor.toString().indexOf("Array") !== -1;
     };
 
     var queryByAttribute = function (queryOptions, callback) {
@@ -2565,7 +2592,7 @@ XrmServiceToolkit.Soap = function () {
 
         var output = [];
         for (var i = 0, ilength = relatedEntities.length; i < ilength; i++) {
-            if (relatedEntities[i].id != '') {
+            if (relatedEntities[i].id !== "") {
                 output.push("<a:EntityReference>",
                                 "<a:Id>", relatedEntities[i].id, "</a:Id>",
                                 "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
@@ -2590,7 +2617,7 @@ XrmServiceToolkit.Soap = function () {
                     "<a:KeyValuePairOfstringanyType>",
                         "<b:key>Relationship</b:key>",
                         "<b:value i:type='a:Relationship'>",
-                            "<a:PrimaryEntityRole i:nil='true' />",
+                            "<a:PrimaryEntityRole>Referenced</a:PrimaryEntityRole>",
                             "<a:SchemaName>", relationshipName, "</a:SchemaName>",
                         "</b:value>",
                     "</a:KeyValuePairOfstringanyType>",
@@ -2653,7 +2680,7 @@ XrmServiceToolkit.Soap = function () {
 
         var output = [];
         for (var i = 0, ilength = relatedEntities.length; i < ilength; i++) {
-            if (relatedEntities[i].id != '') {
+            if (relatedEntities[i].id !== "") {
                 output.push("<a:EntityReference>",
                                 "<a:Id>", relatedEntities[i].id, "</a:Id>",
                                 "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
@@ -3137,14 +3164,14 @@ XrmServiceToolkit.Soap = function () {
 
     var objectifyNode = function (node) {
         //Check for null
-        if (node.attributes != null && node.attributes.length == 1) {
-            if (node.attributes.getNamedItem("i:nil") != null && node.attributes.getNamedItem("i:nil").nodeValue == "true") {
+        if (node.attributes != null && node.attributes.length === 1) {
+            if (node.attributes.getNamedItem("i:nil") != null && node.attributes.getNamedItem("i:nil").nodeValue === "true") {
                 return null;
             }
         }
 
         //Check if it is a value
-        if ((node.firstChild != null) && (node.firstChild.nodeType == 3)) {
+        if ((node.firstChild != null) && (node.firstChild.nodeType === 3)) {
             var nodeName = getNodeName(node);
 
             switch (nodeName) {
@@ -3198,15 +3225,15 @@ XrmServiceToolkit.Soap = function () {
                     //OptionMetadata.Value and BooleanManagedProperty.Value and AttributeRequiredLevelManagedProperty.Value
                 case "Value":
                     //BooleanManagedProperty.Value
-                    if ((node.firstChild.nodeValue === "true") || (node.firstChild.nodeValue == "false")) {
-                        return (node.firstChild.nodeValue == "true") ? true : false;
+                    if ((node.firstChild.nodeValue === "true") || (node.firstChild.nodeValue === "false")) {
+                        return (node.firstChild.nodeValue === "true") ? true : false;
                     }
                     //AttributeRequiredLevelManagedProperty.Value
                     if (
-                          (node.firstChild.nodeValue == "ApplicationRequired") ||
-                          (node.firstChild.nodeValue == "None") ||
-                          (node.firstChild.nodeValue == "Recommended") ||
-                          (node.firstChild.nodeValue == "SystemRequired")
+                          (node.firstChild.nodeValue === "ApplicationRequired") ||
+                          (node.firstChild.nodeValue === "None") ||
+                          (node.firstChild.nodeValue === "Recommended") ||
+                          (node.firstChild.nodeValue === "SystemRequired")
                        ) {
                         return node.firstChild.nodeValue;
                     }
@@ -3247,7 +3274,7 @@ XrmServiceToolkit.Soap = function () {
         }
 
         //Null entity description labels are returned as <label/> - not using i:nil = true;
-        if (node.childNodes.length == 0) {
+        if (node.childNodes.length === 0) {
             return null;
         }
 
@@ -3257,7 +3284,7 @@ XrmServiceToolkit.Soap = function () {
             c._type = node.attributes.getNamedItem("i:type").nodeValue.split(":")[1];
         }
         for (var i = 0, ilength = node.childNodes.length; i < ilength; i++) {
-            if (node.childNodes[i].nodeType == 3) {
+            if (node.childNodes[i].nodeType === 3) {
                 c[getNodeName(node.childNodes[i])] = node.childNodes[i].nodeValue;
             }
             else {
@@ -3506,6 +3533,9 @@ XrmServiceToolkit.Extension = function () {
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
         }
+        else if (typeof GetGlobalContext != "undefined") {
+            oContext = GetGlobalContext();
+        }
         else {
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
@@ -3567,6 +3597,27 @@ XrmServiceToolkit.Extension = function () {
             return;
         }
 
+        function registerHelp(entity, attr, txt) {
+            var obj = jQuery('#' + attr + '_c').children(':first');
+            if (obj != null) {
+                var html = '<img id="img_' + attr + '" src="/_imgs/ico/16_help.gif" alt="' + txt + '" width="16" height="16" /><div id="help_' + attr + '" style="visibility: hidden; position: absolute;">: ' + txt + '</div>';
+                jQuery(obj).append(html);
+                //20110909 GP: added line to hide/show help image
+                jQuery('#img_' + attr).css('display', (bDisplayImg) ? 'inline' : 'none');
+            }
+        }
+
+        //****************************************************
+        function parseHelpXml(data) {
+            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
+            var entXml = jQuery("entity[name=" + entity + "]", data);
+            jQuery(entXml).children().each(function () {
+                var attr = jQuery(this).attr('name');
+                var txt = jQuery(this).find('shorthelp').text();
+                registerHelp(entity, attr, txt);
+            });
+        }
+
         jQuery.support.cors = true;
 
         jQuery.ajax({
@@ -3581,26 +3632,6 @@ XrmServiceToolkit.Extension = function () {
             }
         }); //end Ajax
 
-        //****************************************************
-        function parseHelpXml(data) {
-            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
-            var entXml = jQuery("entity[name=" + entity + "]", data);
-            jQuery(entXml).children().each(function () {
-                var attr = jQuery(this).attr('name');
-                var txt = jQuery(this).find('shorthelp').text();
-                registerHelp(entity, attr, txt);
-            });
-        }
-        //****************************************************
-        function registerHelp(entity, attr, txt) {
-            var obj = jQuery('#' + attr + '_c').children(':first');
-            if (obj != null) {
-                var html = '<img id="img_' + attr + '" src="/_imgs/ico/16_help.gif" alt="' + txt + '" width="16" height="16" /><div id="help_' + attr + '" style="visibility: hidden; position: absolute;">: ' + txt + '</div>';
-                jQuery(obj).append(html);
-                //20110909 GP: added line to hide/show help image
-                jQuery('#img_' + attr).css('display', (bDisplayImg) ? 'inline' : 'none');
-            }
-        }
     };
 
     // Generic Dependent Option Set Function. Changed from CRM 2011 SDK example
@@ -3616,19 +3647,101 @@ XrmServiceToolkit.Extension = function () {
             return;
         }
 
-        jQuery.support.cors = true;
+        // This is the function set on the OnChange event for
+        // parent fields.
+        // ReSharper disable DuplicatingLocalDeclaration
+        function filterDependentField(parentField, childField, jQueryXrmDependentOptionSet) {
+            // ReSharper restore DuplicatingLocalDeclaration
+            for (var depOptionSet in jQueryXrmDependentOptionSet.config) {
+                if (jQueryXrmDependentOptionSet.config.hasOwnProperty(depOptionSet)) {
+                    var dependentOptionSet = jQueryXrmDependentOptionSet.config[depOptionSet];
+                    /* Match the parameters to the correct dependent optionset mapping*/
+                    if ((dependentOptionSet.parent === parentField) && (dependentOptionSet.dependent === childField)) {
+                        /* Get references to the related fields*/
+                        var parent = Xrm.Page.data.entity.attributes.get(parentField);
+                        var child = Xrm.Page.data.entity.attributes.get(childField);
 
-        jQuery.ajax({
-            type: "GET",
-            url: getClientUrl() + "/WebResources/" + filename,
-            dataType: "xml",
-            success: init,
-            // ReSharper disable UnusedParameter
-            error: function (xmlHttpRequest, textStatus, errorThrown) {
-                // ReSharper restore UnusedParameter
-                alertMessage('Something is wrong to setup the dependent picklist. Please contact your administrator');
+                        var parentControl = Xrm.Page.getControl(parentField);
+                        var childControl = Xrm.Page.getControl(childField);
+                        /* Capture the current value of the child field*/
+                        var currentChildFieldValue = child.getValue();
+
+                        /* If the parent field is null the Child field can be set to null */
+                        var controls;
+                        var ctrl;
+                        if (parent.getValue() === null) {
+                            child.setValue(null);
+                            child.setSubmitMode("always");
+                            child.fireOnChange();
+
+                            // Any attribute may have any number of controls,
+                            // so disable each instance.
+                            controls = child.controls.get();
+                            for (ctrl in controls) {
+                                if (controls.hasOwnProperty(ctrl)) {
+                                    controls[ctrl].setDisabled(true);
+                                }
+                            }
+                            return;
+                        }
+
+                        for (var os in dependentOptionSet.options) {
+                            if (dependentOptionSet.options.hasOwnProperty(os)) {
+                                var options = dependentOptionSet.options[os];
+                                var optionsToShow = options.showOptions;
+                                /* Find the Options that corresponds to the value of the parent field. */
+                                if (parent.getValue().toString() === options.value.toString()) {
+                                    controls = child.controls.get(); /*Enable the field and set the options*/
+                                    for (ctrl in controls) {
+                                        if (controls.hasOwnProperty(ctrl)) {
+                                            controls[ctrl].setDisabled(false);
+                                            controls[ctrl].clearOptions();
+
+                                            for (var option in optionsToShow) {
+                                                if (optionsToShow.hasOwnProperty(option)) {
+                                                    controls[ctrl].addOption(optionsToShow[option]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    /*Check whether the current value is valid*/
+                                    var bCurrentValueIsValid = false;
+                                    var childFieldOptions = optionsToShow;
+
+                                    for (var validOptionIndex in childFieldOptions) {
+                                        if (childFieldOptions.hasOwnProperty(validOptionIndex)) {
+                                            var optionDataValue = childFieldOptions[validOptionIndex].value;
+
+                                            if (currentChildFieldValue === parseInt(optionDataValue)) {
+                                                bCurrentValueIsValid = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    /*
+                            If the value is valid, set it.
+                            If not, set the child field to null
+                            */
+                                    if (bCurrentValueIsValid) {
+                                        child.setValue(currentChildFieldValue);
+                                    } else {
+                                        child.setValue(null);
+                                    }
+                                    child.setSubmitMode("always");
+                                    child.fireOnChange();
+
+                                    if (parentControl.getDisabled() === true) {
+                                        childControl.setDisabled(true);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        }); //end Ajax
+        }
+
 
         function init(data) {
             var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
@@ -3667,107 +3780,12 @@ XrmServiceToolkit.Extension = function () {
             //Fire the OnChange event for the mapped optionset fields
             // so that the dependent fields are filtered for the current values.
             for (var depOptionSet in jQueryXrmDependentOptionSet.config) {
-                var parent = jQueryXrmDependentOptionSet.config[depOptionSet].parent;
-                var child = jQueryXrmDependentOptionSet.config[depOptionSet].dependent;
-                filterDependentField(parent, child, jQueryXrmDependentOptionSet);
-            }
-        }
-
-        // This is the function set on the OnChange event for
-        // parent fields.
-        // ReSharper disable DuplicatingLocalDeclaration
-        function filterDependentField(parentField, childField, jQueryXrmDependentOptionSet) {
-            // ReSharper restore DuplicatingLocalDeclaration
-            for (var depOptionSet in jQueryXrmDependentOptionSet.config) {
-                var dependentOptionSet = jQueryXrmDependentOptionSet.config[depOptionSet];
-                /* Match the parameters to the correct dependent optionset mapping*/
-                if ((dependentOptionSet.parent === parentField) && (dependentOptionSet.dependent === childField)) {
-                    /* Get references to the related fields*/
-                    var parent = Xrm.Page.data.entity.attributes.get(parentField);
-                    var child = Xrm.Page.data.entity.attributes.get(childField);
-
-                    var parentControl = Xrm.Page.getControl(parentField);
-                    var childControl = Xrm.Page.getControl(childField);
-                    /* Capture the current value of the child field*/
-                    var currentChildFieldValue = child.getValue();
-
-                    /* If the parent field is null the Child field can be set to null */
-                    var controls;
-                    var ctrl;
-                    if (parent.getValue() === null) {
-                        child.setValue(null);
-                        child.setSubmitMode("always");
-                        child.fireOnChange();
-
-                        // Any attribute may have any number of controls,
-                        // so disable each instance.
-                        controls = child.controls.get();
-                        for (ctrl in controls) {
-                            controls[ctrl].setDisabled(true);
-                        }
-                        return;
-                    }
-
-                    for (var os in dependentOptionSet.options) {
-                        var options = dependentOptionSet.options[os];
-                        var optionsToShow = options.showOptions;
-                        /* Find the Options that corresponds to the value of the parent field. */
-                        if (parent.getValue().toString() === options.value.toString()) {
-                            controls = child.controls.get(); /*Enable the field and set the options*/
-                            for (ctrl in controls) {
-                                controls[ctrl].setDisabled(false);
-                                controls[ctrl].clearOptions();
-
-                                for (var option in optionsToShow) {
-                                    controls[ctrl].addOption(optionsToShow[option]);
-                                }
-                            }
-                            /*Check whether the current value is valid*/
-                            var bCurrentValueIsValid = false;
-                            var childFieldOptions = optionsToShow;
-
-                            for (var validOptionIndex in childFieldOptions) {
-                                var optionDataValue = childFieldOptions[validOptionIndex].value;
-
-                                if (currentChildFieldValue === parseInt(optionDataValue)) {
-                                    bCurrentValueIsValid = true;
-                                    break;
-                                }
-                            }
-                            /*
-                            If the value is valid, set it.
-                            If not, set the child field to null
-                            */
-                            if (bCurrentValueIsValid) {
-                                child.setValue(currentChildFieldValue);
-                            }
-                            else {
-                                child.setValue(null);
-                            }
-                            child.setSubmitMode("always");
-                            child.fireOnChange();
-
-                            if (parentControl.getDisabled() === true) {
-                                childControl.setDisabled(true);
-                            }
-                            break;
-                        }
-                    }
+                if (jQueryXrmDependentOptionSet.config.hasOwnProperty(depOptionSet)) {
+                    var parent = jQueryXrmDependentOptionSet.config[depOptionSet].parent;
+                    var child = jQueryXrmDependentOptionSet.config[depOptionSet].dependent;
+                    filterDependentField(parent, child, jQueryXrmDependentOptionSet);
                 }
             }
-        }
-    };
-
-    var jQueryXrmCustomFilterView = function (filename) {
-        ///<summary>
-        /// A generic configurable method to add custom filter view to lookup field in crm 2011 instance
-        ///</summary>
-        ///<param name="filename" type="String">
-        /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
-        /// </param>
-        if (typeof jQuery === 'undefined') {
-            alertMessage('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
-            return;
         }
 
         jQuery.support.cors = true;
@@ -3780,99 +3798,21 @@ XrmServiceToolkit.Extension = function () {
             // ReSharper disable UnusedParameter
             error: function (xmlHttpRequest, textStatus, errorThrown) {
                 // ReSharper restore UnusedParameter
-                alertMessage('Something is wrong to setup the custom filter view. Please contact your administrator');
+                alertMessage('Something is wrong to setup the dependent picklist. Please contact your administrator');
             }
         }); //end Ajax
+    };
 
-        function init(data) {
-            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
-            var configWr = jQuery("entity[name=" + entity + "]", data);
-
-            //Convert the XML Data into a JScript object.
-            var targetFields = configWr.children("TargetField");
-            var jsConfig = [];
-            for (var i = 0, ilength = targetFields.length; i < ilength; i++) {
-                var node = targetFields[i];
-                var mapping = {};
-                mapping.target = jQuery(node).attr("id");
-                mapping.entityName = jQuery(node).attr("viewentity");
-                mapping.viewName = jQuery(node).attr("viewname");
-                mapping.dynamic = jQuery(node).children("dynamic").children();
-                mapping.fetchXml = xmlToString(jQuery(node).children("fetch"));
-                mapping.layoutXml = xmlToString(jQuery(node).children("grid"));
-
-                jsConfig.push(mapping);
-            }
-            // Attach the configuration object to JQueryCustomFilterView
-            // so it will be available for the OnChange events.
-            jQueryXrmCustomFilterView.config = jsConfig;
-
-            //Fire the OnChange event for the mapped fields
-            // so that the lookup dialog are changed with the filtered view for the current values.
-            for (var customFilterView in jQueryXrmCustomFilterView.config) {
-                var target = jQueryXrmCustomFilterView.config[customFilterView].target;
-                var entityName = jQueryXrmCustomFilterView.config[customFilterView].entityName;
-                var viewName = jQueryXrmCustomFilterView.config[customFilterView].viewName;
-                var dynamic = jQueryXrmCustomFilterView.config[customFilterView].dynamic;
-                var fetchXml = jQueryXrmCustomFilterView.config[customFilterView].fetchXml;
-                var layoutXml = jQueryXrmCustomFilterView.config[customFilterView].layoutXml;
-
-                //TODO: Adding logics for various field and conditions. More tests required. 
-                if (dynamic != null) {
-                    for (var a = 0, alength = dynamic.length; a < alength; a++) {
-                        var dynamicControlType = Xrm.Page.getControl(jQuery(dynamic).attr('name')).getControlType();
-                        var fieldValueType = jQuery(dynamic).attr('fieldvaluetype'); //for optionset, name might be used to filter
-                        if (Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue() === null) {
-                            alertMessage(jQuery(dynamic).attr('name') + ' does not have a value. Please put validation logic on the field change to call this function. Only use XrmServiceToolkit.Extension.JQueryXrmCustomFilterView when the field has a value.');
-                            return;
-                        }
-                        var dynamicValue = null;
-                        switch (dynamicControlType) {
-                            case 'standard':
-                                dynamicValue = Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
-                                break;
-                            case 'optionset':
-                                dynamicValue = (fieldValueType != null && fieldValueType === 'label') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getSelectionOption().text : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
-                                break;
-                            case 'lookup':
-                                dynamicValue = (fieldValueType != null && fieldValueType === 'name') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].id;
-                                break;
-                            default:
-                                alertMessage(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
-                                break;
-                        }
-
-                        var operator = jQuery(dynamic).attr('operator');
-                        if (operator === null) {
-                            alertMessage('operator is missing in the configuration file. Please fix the issue');
-                            return;
-                        }
-                        var dynamicString = jQuery(dynamic).attr('fetchnote');
-                        switch (operator.toLowerCase()) {
-                            case 'contains':
-                            case 'does not contain':
-                                dynamicValue = '%' + dynamicValue + '%';
-                                break;
-                            case 'begins with':
-                            case 'does not begin with':
-                                dynamicValue = dynamicValue + '%';
-                                break;
-                            case 'ends with':
-                            case 'does not end with':
-                                dynamicValue = '%' + dynamicValue;
-                                break;
-                            default:
-                                dynamicValue = dynamicValue;
-                                break;
-                        }
-
-                        fetchXml = fetchXml.replace(dynamicString, dynamicValue);
-                    }
-                }
-
-                //replace the values if required
-                setCustomFilterView(target, entityName, viewName, fetchXml, layoutXml);
-            }
+    var jQueryXrmCustomFilterView = function (filename) {
+        ///<summary>
+        /// A generic configurable method to add custom filter view to lookup field in crm 2011 instance
+        ///</summary>
+        ///<param name="filename" type="String">
+        /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
+        /// </param>
+        if (typeof jQuery === 'undefined') {
+            alertMessage('jQuery is not loaded.\nPlease ensure that jQuery is included\n as web resource in the form load.');
+            return;
         }
 
         function setCustomFilterView(target, entityName, viewName, fetchXml, layoutXml) {
@@ -3906,6 +3846,113 @@ XrmServiceToolkit.Extension = function () {
             }
             return xmlString;
         }
+
+        function init(data) {
+            var entity = Xrm.Page.data.entity.getEntityName().toString().toLowerCase();
+            var configWr = jQuery("entity[name=" + entity + "]", data);
+
+            //Convert the XML Data into a JScript object.
+            var targetFields = configWr.children("TargetField");
+            var jsConfig = [];
+            for (var i = 0, ilength = targetFields.length; i < ilength; i++) {
+                var node = targetFields[i];
+                var mapping = {};
+                mapping.target = jQuery(node).attr("id");
+                mapping.entityName = jQuery(node).attr("viewentity");
+                mapping.viewName = jQuery(node).attr("viewname");
+                mapping.dynamic = jQuery(node).children("dynamic").children();
+                mapping.fetchXml = xmlToString(jQuery(node).children("fetch"));
+                mapping.layoutXml = xmlToString(jQuery(node).children("grid"));
+
+                jsConfig.push(mapping);
+            }
+            // Attach the configuration object to JQueryCustomFilterView
+            // so it will be available for the OnChange events.
+            jQueryXrmCustomFilterView.config = jsConfig;
+
+            //Fire the OnChange event for the mapped fields
+            // so that the lookup dialog are changed with the filtered view for the current values.
+            for (var customFilterView in jQueryXrmCustomFilterView.config) {
+                if (jQueryXrmCustomFilterView.config.hasOwnProperty(customFilterView)) {
+                    var target = jQueryXrmCustomFilterView.config[customFilterView].target;
+                    var entityName = jQueryXrmCustomFilterView.config[customFilterView].entityName;
+                    var viewName = jQueryXrmCustomFilterView.config[customFilterView].viewName;
+                    var dynamic = jQueryXrmCustomFilterView.config[customFilterView].dynamic;
+                    var fetchXml = jQueryXrmCustomFilterView.config[customFilterView].fetchXml;
+                    var layoutXml = jQueryXrmCustomFilterView.config[customFilterView].layoutXml;
+
+                    //TODO: Adding logics for various field and conditions. More tests required. 
+                    if (dynamic != null) {
+                        for (var a = 0, alength = dynamic.length; a < alength; a++) {
+                            var dynamicControlType = Xrm.Page.getControl(jQuery(dynamic).attr('name')).getControlType();
+                            var fieldValueType = jQuery(dynamic).attr('fieldvaluetype'); //for optionset, name might be used to filter
+                            if (Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue() === null) {
+                                alertMessage(jQuery(dynamic).attr('name') + ' does not have a value. Please put validation logic on the field change to call this function. Only use XrmServiceToolkit.Extension.JQueryXrmCustomFilterView when the field has a value.');
+                                return;
+                            }
+                            var dynamicValue = null;
+                            switch (dynamicControlType) {
+                            case 'standard':
+                                dynamicValue = Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
+                                break;
+                            case 'optionset':
+                                dynamicValue = (fieldValueType != null && fieldValueType === 'label') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getSelectionOption().text : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
+                                break;
+                            case 'lookup':
+                                dynamicValue = (fieldValueType != null && fieldValueType === 'name') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].id;
+                                break;
+                            default:
+                                alertMessage(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
+                                break;
+                            }
+
+                            var operator = jQuery(dynamic).attr('operator');
+                            if (operator === null) {
+                                alertMessage('operator is missing in the configuration file. Please fix the issue');
+                                return;
+                            }
+                            var dynamicString = jQuery(dynamic).attr('fetchnote');
+                            switch (operator.toLowerCase()) {
+                            case 'contains':
+                            case 'does not contain':
+                                dynamicValue = '%' + dynamicValue + '%';
+                                break;
+                            case 'begins with':
+                            case 'does not begin with':
+                                dynamicValue = dynamicValue + '%';
+                                break;
+                            case 'ends with':
+                            case 'does not end with':
+                                dynamicValue = '%' + dynamicValue;
+                                break;
+                            default:
+                                break;
+                            }
+
+                            fetchXml = fetchXml.replace(dynamicString, dynamicValue);
+                        }
+                    }
+
+                    //replace the values if required
+                    setCustomFilterView(target, entityName, viewName, fetchXml, layoutXml);
+                }
+            }
+        }
+
+        jQuery.support.cors = true;
+
+        jQuery.ajax({
+            type: "GET",
+            url: getClientUrl() + "/WebResources/" + filename,
+            dataType: "xml",
+            success: init,
+            // ReSharper disable UnusedParameter
+            error: function (xmlHttpRequest, textStatus, errorThrown) {
+                // ReSharper restore UnusedParameter
+                alertMessage('Something is wrong to setup the custom filter view. Please contact your administrator');
+            }
+        }); //end Ajax
+
     };
 
     // Disable or Enable to insert/edit note for entity. Unsupported because of DOM object edit

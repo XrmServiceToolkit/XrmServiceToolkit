@@ -38,7 +38,68 @@
 
         //Test Rest and Soap Functions
         try {
+            QUnit.config.reorder = false;
 
+            //test("Test XrmServiceToolkit.Soap.Fetch() method to retrieve a CRM record (account)", function () {
+
+            //    var fetchXml = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>" +
+            //                     "<entity name='account'>" +
+            //                       "<attribute name='name' />" +
+            //                       "<attribute name='address1_city' />" +
+            //                       "<attribute name='primarycontactid' />" +
+            //                       "<attribute name='telephone1' />" +
+            //                       "<attribute name='accountid' />" +
+            //                       "<order attribute='name' descending='false' />" +
+            //                       "<order attribute='createdon' descending='false' />" +
+            //                       "<filter type='and'>" +
+            //                         "<condition attribute='statecode' operator='eq' value='0' />" +
+            //                       "</filter>" +
+            //                       "<link-entity name='contact' from='contactid' to='primarycontactid' visible='false' link-type='outer' alias='primarycontact'>" +
+            //                         "<attribute name='emailaddress1' />" +
+            //                         "<attribute name='statuscode' />" +
+            //                         "<attribute name='statecode' />" +
+            //                         "<attribute name='numberofchildren' />" +
+            //                         "<attribute name='exchangerate' />" +
+            //                         "<attribute name='educationcode' />" +
+            //                         "<attribute name='creditonhold' />" +
+            //                         "<attribute name='createdby' />" +
+            //                         "<attribute name='parentcustomerid' />" +
+            //                         "<attribute name='birthdate' />" +
+            //                         "<attribute name='annualincome' />" +
+            //                         "<attribute name='address1_line1' />" +
+            //                         "<attribute name='description' />" +
+            //                         "<attribute name='address1_latitude' />" +
+            //                         "<attribute name='createdon' />" +
+            //                         "<attribute name='creditlimit' />" +
+            //                       "</link-entity>" +
+            //                     "</entity>" +
+            //                   "</fetch>";
+
+            //    var results = XrmServiceToolkit.Soap.Fetch(fetchXml, true);
+
+            //    var entity = new XrmServiceToolkit.Soap.BusinessEntity("account", results[0].id);
+            //    var name = results[0].attributes["name"].value;
+            //    entity.attributes["name"] = "Updated " + name;
+            //    var updateResult = XrmServiceToolkit.Soap.Update(entity);
+
+            //    ok(results.length > 0, "Total Records returned " + results.length.toString());
+            //});
+
+            test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using two criteria", function () {
+                var queryOptions = {
+                    entityName: "contact",
+                    attributes: ["statecode"],
+                    values: ["aaajsjsjs"],
+                    columnSet: ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"],
+                    orderBy: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
+                };
+
+                var fetchedContacts = XrmServiceToolkit.Soap.QueryByAttribute(queryOptions);
+
+                ok(fetchedContacts.length >= 1, "at least there should be one matched contact record, which is what we just created");
+            });
+
+            /*
             module("[Rest Functions]");
 
             jQuery.support.cors = true;
@@ -352,16 +413,16 @@
                 var query =
                        "<a:ColumnSet>" +
                         "<a:AllColumns>false</a:AllColumns>" +
-                        "<a:Columns xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
-                          "<b:string>firstname</b:string>" +
-                          "<b:string>lastname</b:string>" +
-                          "<b:string>middlename</b:string>" +
-                          "<b:string>familystatuscode</b:string>" +
-                          "<b:string>ownerid</b:string>" +
-                          "<b:string>creditlimit</b:string>" +
-                          "<b:string>birthdate</b:string>" +
-                          "<b:string>donotemail</b:string>" +
-                          "<b:string>donotphone</b:string>" +
+                        "<a:Columns xmlns:c='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
+                          "<c:string>firstname</c:string>" +
+                          "<c:string>lastname</c:string>" +
+                          "<c:string>middlename</c:string>" +
+                          "<c:string>familystatuscode</c:string>" +
+                          "<c:string>ownerid</c:string>" +
+                          "<c:string>creditlimit</c:string>" +
+                          "<c:string>birthdate</c:string>" +
+                          "<c:string>donotemail</c:string>" +
+                          "<c:string>donotphone</c:string>" +
                         "</a:Columns>" +
                       "</a:ColumnSet>" +
                       "<a:Criteria>" +
@@ -437,7 +498,7 @@
                          "</entity>" +
                       "</fetch>";
 
-                var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml);
+                var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
 
                 equal(retrievedContacts.length, 1, "only last created contact should be found");
                 equal(retrievedContacts[0].attributes['lastname'].value, "Lopez", "A retrieve of just updated contact has proved that its last name has actually been updated. ");
@@ -474,11 +535,26 @@
                 equal(fetchedContacts.length, 1, "only one record should be returned when doing aggregation.");
                 equal(fetchedContacts[0].attributes['count'].formattedValue, "1", "only one contact record would match the id.");
             });
-            
+
+            test("Test XrmServiceToolkit.Soap.Fetch() method to retrieve a CRM record (account)", function () {
+
+                var fetchXml =
+                      "<fetch mapping='logical'>" +
+                         "<entity name='account'>" +
+                            "<attribute name='accountid' />" +
+                            "<attribute name='name' />" +
+                         "</entity>" +
+                      "</fetch>";
+
+                var results = XrmServiceToolkit.Soap.Fetch(fetchXml, true);
+
+                ok(results.length > 0, "Total Records returned " + results.length.toString());
+            });
+
             test("Test XrmServiceToolkit.Soap.Fetch() method to do a query with limited return", function () {
 
                 var fetchXml =
-                  "<fetch mapping='logical' page='1' count='5'>" +
+                  "<fetch mapping='logical' page='1' count='7'>" +
                      "<entity name='account'>" +
                         "<attribute name='accountid' />" +
                      "</entity>" +
@@ -486,7 +562,7 @@
 
                 var fetchedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
 
-                equal(fetchedContacts.length, 5, "only five records should be returned when doing limited fetch.");
+                equal(fetchedContacts.length, 7, "only 7 records should be returned when doing limited fetch.");
             });
 
             test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using one criterion", function () {
@@ -701,7 +777,7 @@
 
             test("Test XrmServiceToolkit.Soap.RetrieveEntityMetadata() method to return CRM Metadata for a certain entity", function () {
 
-                var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Attributes"], "salesorder", true);
+                var entityMetadata = XrmServiceToolkit.Soap.RetrieveEntityMetadata(["Entity"], "account", true);
                 ok(entityMetadata.length == 1, "The Metadata has been returned for the account entity");
 
             });
@@ -736,7 +812,7 @@
                 return false;
             };
 
-            var result = XrmServiceToolkit.Common.GetObjectTypeCode("contact");
+            */
         }
         catch (error) {
             alert(error.message);

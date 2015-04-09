@@ -23,6 +23,8 @@ account_onLoad = function () {
         
         XrmServiceToolkit.Extension.JQueryXrmDependentOptionSet("new_JQueryDependentOptionSetConfig");
 
+        //XrmServiceToolkit.Common.DisableAllControlsInTab(0);
+
     }
     catch (err) {
         alert(err.message);

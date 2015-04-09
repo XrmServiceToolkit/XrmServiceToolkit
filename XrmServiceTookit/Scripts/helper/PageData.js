@@ -8,7 +8,7 @@
     "OrgLcid": 1033,
     "OrgUniqueName": "XrmServiceToolkitDev",
     "QueryStringParameters": { "_gridType": "1", "etc": "1", "id": "{23DE412D-5940-E211-B148-D48564519C24}", "pagemode": "iframe", "preloadcache": "1354877028374", "rskey": "295304538" },
-    "ServerUrl": "http://localhost:5555/XrmServiceToolkitDev",
+    "ServerUrl": "http://localhost:5555/XrmServiceToolkit",
     "UserId": "{03327570-43A1-418E-AA58-8EDE97E4A101}",
     "UserLcid": 1033,
     "UserRoles": ["aae85351-6829-e211-af68-d48564519c24", "98f25351-6829-e211-af68-d48564519c24"],
