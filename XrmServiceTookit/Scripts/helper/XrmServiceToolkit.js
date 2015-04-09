@@ -1605,7 +1605,7 @@ XrmServiceToolkit.Soap = function () {
                             xml.push("<b:value i:type='a:EntityCollection'>");
                             xml.push("<a:Entities>");
                             value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var collections = Array.isArray(value) ? value : [value];
+                            var collections = isArray(value) ? value : [value];
 
                             for (var i = 0, collectionLengh = collections.length; i < collectionLengh; i++) {
                                 var item = collections[i];
