@@ -40,6 +40,29 @@
         try {
             QUnit.config.reorder = false;
 
+            
+            var fetchXml =
+                  "<fetch mapping='logical'>" +
+                     "<entity name='contact'>" +
+                        "<attribute name='contactid' />" +
+                        "<attribute name='firstname' />" +
+                        "<attribute name='lastname' />" +
+                        "<attribute name='middlename' />" +
+                        "<attribute name='familystatuscode' />" +
+                        "<attribute name='ownerid' />" +
+                        "<attribute name='creditlimit' />" +
+                        "<attribute name='birthdate' />" +
+                        "<attribute name='accountrolecode' />" +
+                        "<attribute name='donotemail' />" +
+                        "<attribute name='donotphone' />" +
+                        "<filter>" +
+                           "<condition attribute='statecode' operator='eq' value='" + 0 + "' />" +
+                        "</filter>" +
+                     "</entity>" +
+                  "</fetch>";
+
+            var retrievedContacts = XrmServiceToolkit.Soap.Fetch(fetchXml, false);
+
             //test("Test XrmServiceToolkit.Soap.Fetch() method to retrieve a CRM record (account)", function () {
 
             //    var fetchXml = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>" +
@@ -85,19 +108,19 @@
             //    ok(results.length > 0, "Total Records returned " + results.length.toString());
             //});
 
-            test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using two criteria", function () {
-                var queryOptions = {
-                    entityName: "contact",
-                    attributes: ["statecode"],
-                    values: ["aaajsjsjs"],
-                    columnSet: ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"],
-                    orderBy: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
-                };
+            //test("Test XrmServiceToolkit.Soap.QueryByAttribute() method to retrieve a CRM record (contact) using two criteria", function () {
+            //    var queryOptions = {
+            //        entityName: "contact",
+            //        attributes: ["statecode"],
+            //        values: ["aaajsjsjs"],
+            //        columnSet: ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"],
+            //        orderBy: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
+            //    };
 
-                var fetchedContacts = XrmServiceToolkit.Soap.QueryByAttribute(queryOptions);
+            //    var fetchedContacts = XrmServiceToolkit.Soap.QueryByAttribute(queryOptions);
 
-                ok(fetchedContacts.length >= 1, "at least there should be one matched contact record, which is what we just created");
-            });
+            //    ok(fetchedContacts.length >= 1, "at least there should be one matched contact record, which is what we just created");
+            //});
 
             /*
             module("[Rest Functions]");

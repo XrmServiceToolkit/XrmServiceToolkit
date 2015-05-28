@@ -3,10 +3,10 @@
 /// <reference path="jquery.js" />
 
 /**
-* MSCRM 2011 Web Service Toolkit for JavaScript
+* MSCRM 2015, 2013, 2011 Web Service Toolkit for JavaScript
 * @author Jaimie Ji
 * @author David Berry
-* @current version : 2.2
+* @current version : 2.2.1
 
 * Credits:
 *   The idea of this library was inspired by Daniel Cai's CrmWebServiceToolkit.
@@ -135,7 +135,17 @@
 *       New Fix - XrmServiceToolkit.Soap.Fetch aggregate fix
 *       New Fix - XrmServiceToolkit.Soap.Fetch distinct support
 *       New Fix - Aliased Values Handling
-*   Beta Release for CRM 2013
+*   Stable Release for CRM 2013, CRM 2015
+**********************************************************************************************************
+*   Version: 2.2.1
+*   Date: May, 2015
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
+*       ---NOTE---Due to the changes for CRM 2013, please use the attached version of JSON2 and jQuery
+*       Tested Platform: IE11, IE10, latest Chrome, latest FireFox
+*    Changes:
+*       CRM 2015 7.1 release
+*       New Fix - Added logic for EntityReference in SOAP for 7.1 changes
+*   Beta Release for CRM 2015 online Update 1
 **********************************************************************************************************
 */
 
@@ -1619,8 +1629,14 @@ XrmServiceToolkit.Soap = function () {
                                 xml.push("<b:key>partyid</b:key>");
                                 xml.push("<b:value i:type='a:EntityReference'>");
                                 xml.push("<a:Id>", encodedId, "</a:Id>");
+                                if (Xrm.Utility.openQuickCreate !== undefined) {
+                                    xml.push("<a:KeyAttributes xmlns:c='http://schemas.microsoft.com/xrm/7.1/Contracts' />");
+                                }
                                 xml.push("<a:LogicalName>", encodedLogicalName, "</a:LogicalName>");
                                 xml.push("<a:Name i:nil='true' />");
+                                if (Xrm.Utility.openQuickCreate !== undefined) {
+                                    xml.push("<a:RowVersion i:nil='true' />");
+                                }
                                 xml.push("</b:value>");
                                 xml.push("</a:KeyValuePairOfstringanyType>");
                                 xml.push("</a:Attributes>");
@@ -1648,8 +1664,15 @@ XrmServiceToolkit.Soap = function () {
                             encodedLogicalName = encodeValue(logicalName);
                             xml.push("<b:value i:type='a:EntityReference'>");
                             xml.push("<a:Id>", encodedId, "</a:Id>");
+                            if (Xrm.Utility.openQuickCreate !== undefined) {
+                                xml.push("<a:KeyAttributes xmlns:c='http://schemas.microsoft.com/xrm/7.1/Contracts' />");
+                            }
                             xml.push("<a:LogicalName>", encodedLogicalName, "</a:LogicalName>");
-                            xml.push("<a:Name i:nil='true' />", "</b:value>");
+                            xml.push("<a:Name i:nil='true' />");
+                            if (Xrm.Utility.openQuickCreate !== undefined) {
+                                xml.push("<a:RowVersion i:nil='true' />");
+                            }
+                            xml.push("</b:value>");
                             break;
 
                         case "Money":
@@ -1744,9 +1767,21 @@ XrmServiceToolkit.Soap = function () {
                                     entRef = new xrmEntityReference();
                                     entRef.type = sType.replace('a:', '');
                                     var oChildNodes = tempNode.childNodes;
-                                    entRef.id = getNodeText(oChildNodes[0]);
-                                    entRef.logicalName = getNodeText(oChildNodes[1]);
-                                    entRef.name = getNodeText(oChildNodes[2]);
+                                    for (var i = 0, leni = oChildNodes.length; i < leni; i++) {
+                                        var entityReferenceNode = oChildNodes[i];
+
+                                        switch (entityReferenceNode.nodeName) {
+                                            case "a:Id":
+                                                entRef.id = getNodeText(entityReferenceNode);
+                                                break;
+                                            case "a:LogicalName":
+                                                entRef.logicalName = getNodeText(entityReferenceNode);
+                                                break;
+                                            case "a:Name":
+                                                entRef.name = getNodeText(entityReferenceNode);
+                                                break;
+                                        }
+                                    }                              
                                     obj[sKey] = entRef;
                                     break;
 
@@ -1764,9 +1799,22 @@ XrmServiceToolkit.Soap = function () {
                                             var nodeText = getNodeText(itemNodeChildNodes[0]);
                                             if (nodeText === "partyid") {
                                                 var itemRef = new xrmEntityReference();
-                                                itemRef.id = getNodeText(itemNodeChildNodes[1].childNodes[0]);
-                                                itemRef.logicalName = getNodeText(itemNodeChildNodes[1].childNodes[1]);
-                                                itemRef.name = getNodeText(itemNodeChildNodes[1].childNodes[2]);
+                                                var partyListNodes = itemNodeChildNodes[1].childNodes;
+                                                for (var pi = 0, lenpi = partyListNodes.length; pi < lenpi; pi++) {
+                                                    var partyReferenceNode = partyListNodes[i];
+
+                                                    switch (partyReferenceNode.nodeName) {
+                                                        case "a:Id":
+                                                            itemRef.id = getNodeText(partyReferenceNode);
+                                                            break;
+                                                        case "a:LogicalName":
+                                                            itemRef.logicalName = getNodeText(partyReferenceNode);
+                                                            break;
+                                                        case "a:Name":
+                                                            itemRef.name = getNodeText(partyReferenceNode);
+                                                            break;
+                                                    }
+                                                }
                                                 items[y] = itemRef;
                                             }
                                         }
@@ -1833,7 +1881,7 @@ XrmServiceToolkit.Soap = function () {
         }
     };
 
-    var getError = function (resp) {
+    var getError = function (async, resp, internalCallback) {
         //Error descriptions come from http://support.microsoft.com/kb/193625
 
         if (resp.status === 12029)
@@ -1890,7 +1938,12 @@ XrmServiceToolkit.Soap = function () {
                 errorMessage = faultstring;
             }
         }
-        throw new Error(errorMessage);
+        if (async) {
+            return new Error(errorMessage);
+        } else {
+            throw new Error(errorMessage);
+        }
+      
     };
 
     var doRequest = function (soapBody, requestType, async, internalCallback) {
@@ -1924,7 +1977,7 @@ XrmServiceToolkit.Soap = function () {
                         internalCallback(doc);
                     }
                     else {
-                        getError(req);
+                        getError(true, req);
                     }
                 }
             };
@@ -1939,7 +1992,7 @@ XrmServiceToolkit.Soap = function () {
                 var result = doc;
                 return !!internalCallback ? internalCallback(result) : result;
             } else {
-                getError(req);
+                getError(false, req);
             }
         }
         // ReSharper disable NotAllPathsReturnValue

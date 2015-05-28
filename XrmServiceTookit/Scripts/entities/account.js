@@ -25,6 +25,23 @@ account_onLoad = function () {
 
         //XrmServiceToolkit.Common.DisableAllControlsInTab(0);
 
+        var queryOptions = {
+            entityName: "contact1",
+            attributes: ["statecode"],
+            values: ["aaajsjsjs"],
+            columnSet: ["firstname", "lastname", "middlename", "familystatuscode", "ownerid", "creditlimit", "birthdate", "donotemail", "donotphone"],
+            orderBy: ["firstname", "lastname"] // Order by firstname and then lastname even though we are only getting one record back
+        };
+
+        XrmServiceToolkit.Soap.QueryByAttribute(queryOptions, function(result) {
+        try {
+            alert("success");
+        } catch (e) {
+            alert(e.message);
+        } 
+
+        });
+
     }
     catch (err) {
         alert(err.message);
