@@ -1,0 +1,11 @@
+{
+  "ambientDependencies": {
+    "es6-shim": "registry:dt/es6-shim#0.31.2+20160317120654",
+    "gulp": "registry:dt/gulp#3.8.0+20160316155526",
+    "jquery": "registry:dt/jquery#1.10.0+20160316155526",
+    "node": "registry:dt/node#4.0.0+20160330064709",
+    "orchestrator": "registry:dt/orchestrator#0.0.0+20160316155526",
+    "q": "registry:dt/q#0.0.0+20160323171452",
+    "xrm": "registry:dt/xrm#7.1.0+20160317120654"
+  }
+}
