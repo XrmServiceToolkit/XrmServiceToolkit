@@ -8,8 +8,6 @@ XrmServiceToolkit is a JavaScript library which can be used for JavaScript Devel
 * Soap: Organization Service functions including CRUD, Fetch, Associate, Disassociate, etc
 * Extension: jQuery extension to utilize WebResource to extend CRM 2011 / CRM 2013 / CRM 2015 including dependent OptionSet, field tooltip, add custom filter view to lookup field. (Some Methods 'Unsupported'. Some of these methods have either been replaced with supported methods or deprecated in CRM 2013 version)
 
-<font color='red'>[NOTE] XrmServiceToolkit is only and will be only hosted in codeplex. Please be careful or even let us know if you have seen any other hosting directories. Thanks</font>
-
 ## **CRM 2015**
 
 * V2.2 is the official release for CRM 2015 support
