@@ -460,10 +460,16 @@ export function selectNodes(node: any, xPathExpression: string): Array<string> {
 export function selectSingleNode(node: any, xpathExpr: string) {
     if (typeof (node.selectSingleNode) != "undefined") {
         return node.selectSingleNode(xpathExpr);
-    } else {
+    } else if(typeof XPathEvaluator !== "undefined") {
         let xpe: XPathEvaluator = new XPathEvaluator();
         let results = xpe.evaluate(xpathExpr, node, <any>nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
         return results.singleNodeValue;
+    } else {
+        let doc = (node.nodeType != 9 ? node.ownerDocument : node);
+        if (typeof doc.evaluate != "undefined") {
+            let result = doc.evaluate(xpathExpr, node, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            return (result !== null ? result.singleNodeValue : null);
+        }
     }
 };
 
@@ -913,7 +919,7 @@ export function objectifyNode(node: Node): any {
     if (node.attributes.getNamedItem("i:type") != null) {
         c._type = node.attributes.getNamedItem("i:type").nodeValue.split(":")[1];
     }
-    
+
     for (let i: number = 0, ilength: number = node.childNodes.length; i < ilength; i++) {
         if (node.childNodes[i].nodeType === 3) {
             c[getNodeName(node.childNodes[i])] = node.childNodes[i].nodeValue;
