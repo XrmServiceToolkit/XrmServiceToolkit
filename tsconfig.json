@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es5",
-    "declaration": false,
+    "declaration": true,
     "module": "commonjs",
     "noImplicitAny": true,
     "preserveConstEnums": true,
