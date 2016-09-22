@@ -584,18 +584,27 @@ XrmServiceToolkit.Rest = function () {
     };
 
     var errorHandler = function (req) {
-        ///<summary>
-        /// Private function return an Error object to the errorCallback
-        ///</summary>
-        ///<param name="req" type="XMLHttpRequest">
-        /// The XMLHttpRequest response that returned an error.
-        ///</param>
-        ///<returns>Error</returns>
-        throw new Error("Error : " +
-        req.status + ": " +
-        req.statusText + ": " +
-        JSON.parse(req.responseText).error.message.value);
-    };
+	    ///<summary>
+	    /// Private function return an Error object to the errorCallback
+	    ///</summary>
+	    ///<param name="req" type="XMLHttpRequest">
+	    /// The XMLHttpRequest response that returned an error.
+	    ///</param>
+	    ///<returns>Error</returns>
+	    try {
+	        return new Error("Error : " +
+	            req.status + ": " +
+	            req.statusText + ": " +
+	            JSON.parse(req.responseText).error.message.value);
+	    }
+	    catch (err) {
+	        // Error status codes: https://support.microsoft.com/en-us/kb/193625
+	        return new Error("Error : " +
+	            req.status + ": " +
+	            req.statusText + ": " +
+	            "Response text could not be parsed (empty?). WinInet Error codes: https://support.microsoft.com/en-us/kb/193625 ."
+	    }
+	};
 
     var dateReviver = function (key, value) {
         ///<summary>
