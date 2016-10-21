@@ -1,4 +1,4 @@
-/// <reference path="XrmPageTemplate.js" />
+﻿/// <reference path="XrmPageTemplate.js" />
 /// <reference path="json2.js" />
 /// <reference path="jquery.js" />
 
@@ -544,17 +544,9 @@ XrmServiceToolkit.Rest = function () {
         var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
-<<<<<<< HEAD
         } else if (typeof GetGlobalContext != "undefined") {
             oContext = GetGlobalContext();
         } else {
-=======
-        }
-        else if (typeof GetGlobalContext != "undefined") {
-            oContext = GetGlobalContext();
-        }
-        else {
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
             } else if (typeof window.parent.Xrm != "undefined") {
@@ -594,19 +586,12 @@ XrmServiceToolkit.Rest = function () {
         /// The XMLHttpRequest response that returned an error.
         ///</param>
         ///<returns>Error</returns>
-<<<<<<< HEAD
-        throw new Error("Error : " +
-            req.status + ": " +
-            req.statusText + ": " +
-            JSON.parse(req.responseText).error.message.value);
-=======
         try {
             return new Error("Error : " +
                 req.status + ": " +
                 req.statusText + ": " +
                 JSON.parse(req.responseText).error.message.value);
-        }
-        catch (err) {
+        } catch (err) {
             // Error status codes: https://support.microsoft.com/en-us/kb/193625
             return new Error("Error : " +
                 req.status + ": " +
@@ -614,7 +599,6 @@ XrmServiceToolkit.Rest = function () {
                 "Response text could not be parsed (empty?). WinInet Error codes: https://support.microsoft.com/en-us/kb/193625 ."
             );
         }
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
     };
 
     var dateReviver = function (key, value) {
@@ -1329,7 +1313,7 @@ XrmServiceToolkit.Soap = function () {
     var encodeValue = function (value) {
         // Handle GUIDs wrapped in braces
         if (typeof value == "string") {
-            value = value.replace(/[{}]/g,"");
+            value = value.replace(/[{}]/g, "");
         }
 
         // ReSharper disable QualifiedExpressionMaybeNull
@@ -2954,7 +2938,6 @@ XrmServiceToolkit.Soap = function () {
         }
 
         var request = ["<request i:type='b:GrantAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-<<<<<<< HEAD
             "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
             "<c:key>Target</c:key>",
@@ -2980,32 +2963,6 @@ XrmServiceToolkit.Soap = function () {
             "<a:RequestName>GrantAccess</a:RequestName>",
             "</request>"
         ].join("");
-=======
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Target</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-                              "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>PrincipalAccess</c:key>",
-                            "<c:value i:type='b:PrincipalAccess'>",
-                              "<b:AccessMask>", accessRightString, "</b:AccessMask>",
-                              "<b:Principal>",
-                                "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-                                "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-                                "<a:Name i:nil='true' />",
-                              "</b:Principal>",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                        "</a:Parameters>",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>GrantAccess</a:RequestName>",
-                    "</request>"].join("");
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3052,7 +3009,6 @@ XrmServiceToolkit.Soap = function () {
         }
 
         var request = ["<request i:type='b:ModifyAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-<<<<<<< HEAD
             "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
             "<c:key>Target</c:key>",
@@ -3078,32 +3034,6 @@ XrmServiceToolkit.Soap = function () {
             "<a:RequestName>ModifyAccess</a:RequestName>",
             "</request>"
         ].join("");
-=======
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Target</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-                              "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>PrincipalAccess</c:key>",
-                            "<c:value i:type='b:PrincipalAccess'>",
-                              "<b:AccessMask>", accessRightString, "</b:AccessMask>",
-                              "<b:Principal>",
-                                "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-                                "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-                                "<a:Name i:nil='true' />",
-                              "</b:Principal>",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                        "</a:Parameters>",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>ModifyAccess</a:RequestName>",
-                    "</request>"].join("");
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3140,7 +3070,6 @@ XrmServiceToolkit.Soap = function () {
         var revokeeEntityId = accessOptions.revokeeEntityId;
 
         var request = ["<request i:type='b:RevokeAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-<<<<<<< HEAD
             "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
             "<c:key>Target</c:key>",
@@ -3163,29 +3092,6 @@ XrmServiceToolkit.Soap = function () {
             "<a:RequestName>RevokeAccess</a:RequestName>",
             "</request>"
         ].join("");
-=======
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Target</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-                              "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Revokee</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(revokeeEntityId), "</a:Id>",
-                              "<a:LogicalName>", revokeeEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                        "</a:Parameters>",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>RevokeAccess</a:RequestName>",
-                    "</request>"].join("");
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3222,7 +3128,6 @@ XrmServiceToolkit.Soap = function () {
         var principalEntityId = accessOptions.principalEntityId;
 
         var request = ["<request i:type='b:RetrievePrincipalAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-<<<<<<< HEAD
             "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
             "<c:key>Target</c:key>",
@@ -3245,29 +3150,6 @@ XrmServiceToolkit.Soap = function () {
             "<a:RequestName>RetrievePrincipalAccess</a:RequestName>",
             "</request>"
         ].join("");
-=======
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Target</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-                              "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Principal</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-                              "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                        "</a:Parameters>",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>RetrievePrincipalAccess</a:RequestName>",
-                    "</request>"].join("");
->>>>>>> 4341c168b38e6e76d615b146a734d753ea3d396f
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
