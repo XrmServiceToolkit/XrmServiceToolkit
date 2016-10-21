@@ -1666,7 +1666,7 @@ XrmServiceToolkit.Soap = function () {
                             case "number":
                                 value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
                                 encodedValue = encodeValue(value);
-                                var oType = (String(value) === encodedValue) ? "c:int" : "c:decimal";
+                                var oType = (String(parseInt(value, 10)) === encodedValue) ? "c:int" : "c:decimal";
                                 xml.push("<b:value i:type='", oType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>");
                                 xml.push(encodedValue, '</b:value>');
                                 break;
