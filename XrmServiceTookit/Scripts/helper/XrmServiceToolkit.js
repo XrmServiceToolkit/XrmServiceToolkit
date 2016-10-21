@@ -52,23 +52,23 @@
 *       New Feature - A change of logic to increase performance when returning large number of records
 *       New Function - XrmServiceToolkit.Soap.QueryAll: Return all available records by query options (>5k+)
 *       New Fix - XrmServiceToolkit.Rest.RetrieveMultiple not returning records more than 50
-*       New Fix - XrmServiceToolkit.Soap.Business error when referring number fields like (int, double, float)     
+*       New Fix - XrmServiceToolkit.Soap.Business error when referring number fields like (int, double, float)
 *       New Fix - XrmServiceToolkit.Soap not handling error message properly
 **********************************************************************************************************
 *   Version: 1.3.2
 *   Date: January, 2013
-*       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
 *       New Fix - XrmServiceToolkit.Soap cross browser support to initialize soap service
 **********************************************************************************************************
-*   Version: 1.4.0 
+*   Version: 1.4.0
 *   Date: January, 2013
-*       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
 *       Feature: Add Cross Browser Support for RU12
 *       Tested Platform: IE9, IE10, Chrome Version 24.0.1312.56 m, Firefox 18.0.1
 **********************************************************************************************************
 *   Version: 1.4.1
 *   Date: April, 2013
-*       Dependency: JSON2, jQuery (latest or 1.7.2 above)  
+*       Dependency: JSON2, jQuery (latest or 1.7.2 above)
 *       Tested Platform: IE9, IE10, Chrome Version 26.0.1410.64 m, Firefox 20.0.1
 *       Feature: Add Cross Browser Support for RU12, RU13
 *       New Fix - XrmServiceToolkit.Common.AddNotification method updated for RU12, RU13, still compatible for RU11 below
@@ -161,7 +161,7 @@ XrmServiceToolkit = function () {
 XrmServiceToolkit.Common = function () {
 
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message): alert(message);
     };
 
     var guidsAreEqual = function (guid1, guid2) {
@@ -178,8 +178,7 @@ XrmServiceToolkit.Common = function () {
         var isEqual;
         if (guid1 === null || guid2 === null || guid1 === undefined || guid2 === undefined) {
             isEqual = false;
-        }
-        else {
+        } else {
             isEqual = guid1.replace(/[{}]/g, "").toLowerCase() === guid2.replace(/[{}]/g, "").toLowerCase();
         }
 
@@ -322,8 +321,7 @@ XrmServiceToolkit.Common = function () {
                     Xrm.Page.ui.setFormNotification(message, "WARNING", tempUniqueId);
                 }
             }
-        }
-        else {
+        } else {
             var notificationsArea = document.getElementById('crmNotifications');
             if (notificationsArea === null || notificationsArea === undefined) {
                 alertMessage('Cannot find the notification area');
@@ -411,11 +409,11 @@ XrmServiceToolkit.Common = function () {
         var tabControl = Xrm.Page.ui.tabs.get(tabControlNo);
         if (tabControl != null) {
             Xrm.Page.ui.controls.forEach(
-             function (control) {
-                 if (control.getParent() !== null && control.getParent().getParent() != null && control.getParent().getParent() === tabControl && control.getControlType() !== "subgrid") {
-                     control.setDisabled(true);
-                 }
-             });
+                function (control) {
+                    if (control.getParent() !== null && control.getParent().getParent() != null && control.getParent().getParent() === tabControl && control.getControlType() !== "subgrid") {
+                        control.setDisabled(true);
+                    }
+                });
         }
     };
 
@@ -428,10 +426,10 @@ XrmServiceToolkit.Common = function () {
         /// </param>
         /// <returns type="void" />
         var tabs = Xrm.Page.ui.tabs;
-        for (var i = 0, tablength = tabs.getLength() ; i < tablength; i++) {
+        for (var i = 0, tablength = tabs.getLength(); i < tablength; i++) {
             var tab = tabs.get(i);
             var sections = tab.sections;
-            for (var j = 0, sectionlength = sections.getLength() ; j < sectionlength; j++) {
+            for (var j = 0, sectionlength = sections.getLength(); j < sectionlength; j++) {
                 var section = sections.get(j);
                 if (section.getLabel().toLowerCase() === sectionLabel.toLowerCase()) {
                     Xrm.Page.ui.controls.forEach(
@@ -468,7 +466,7 @@ XrmServiceToolkit.Rest = function () {
     // Private members
 
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message): alert(message);
     };
 
     var htmlEncode = function (s) {
@@ -479,7 +477,9 @@ XrmServiceToolkit.Rest = function () {
                 buffer += String.fromCharCode(c);
             else buffer += "&#" + c + ";";
             if (++count === 500) {
-                hEncode += buffer; buffer = ""; count = 0;
+                hEncode += buffer;
+                buffer = "";
+                count = 0;
             }
         }
         if (buffer.length) hEncode += buffer;
@@ -495,12 +495,11 @@ XrmServiceToolkit.Rest = function () {
                 if (cnt + 1 < s.length) {
                     var c1 = s.charCodeAt(cnt + 1);
                     if (c1 >= 56320 && c1 <= 57343) {
-                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++;
-                    }
-                    else
+                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose";
+                        cnt++;
+                    } else
                         buffer += String.fromCharCode(c0);
-                }
-                else buffer += String.fromCharCode(c0);
+                } else buffer += String.fromCharCode(c0);
             else buffer += String.fromCharCode(c0);
         }
         s = buffer;
@@ -524,8 +523,8 @@ XrmServiceToolkit.Rest = function () {
         // ReSharper disable UsageOfPossiblyUnassignedValue
         // ReSharper disable ExpressionIsAlwaysConst
         if ('undefined' === typeof s || 'unknown' === typeof s || null === s) return s;
-            // ReSharper restore ExpressionIsAlwaysConst
-            // ReSharper restore UsageOfPossiblyUnassignedValue
+        // ReSharper restore ExpressionIsAlwaysConst
+        // ReSharper restore UsageOfPossiblyUnassignedValue
         else if (typeof s != "string") s = s.toString();
         return innerSurrogateAmpersandWorkaround(s);
     };
@@ -545,18 +544,14 @@ XrmServiceToolkit.Rest = function () {
         var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
-        }
-        else if (typeof GetGlobalContext != "undefined") {
-            oContext = GetGlobalContext(); 
-        }
-        else {
+        } else if (typeof GetGlobalContext != "undefined") {
+            oContext = GetGlobalContext();
+        } else {
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
-            }
-            else if (typeof window.parent.Xrm != "undefined") {
+            } else if (typeof window.parent.Xrm != "undefined") {
                 oContext = window.parent.Xrm.Page.context;
-            }
-            else {
+            } else {
                 throw new Error("Context is not available.");
             }
         }
@@ -592,9 +587,9 @@ XrmServiceToolkit.Rest = function () {
         ///</param>
         ///<returns>Error</returns>
         throw new Error("Error : " +
-        req.status + ": " +
-        req.statusText + ": " +
-        JSON.parse(req.responseText).error.message.value);
+            req.status + ": " +
+            req.statusText + ": " +
+            JSON.parse(req.responseText).error.message.value);
     };
 
     var dateReviver = function (key, value) {
@@ -740,12 +735,11 @@ XrmServiceToolkit.Rest = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (this.readyState === 4 /* complete */) {
+                if (this.readyState === 4 /* complete */ ) {
                     req.onreadystatechange = null;
                     if (req.status === 201) {
                         successCallback(JSON.parse(req.responseText, dateReviver).d);
-                    }
-                    else {
+                    } else {
                         errorCallback(errorHandler(req));
                     }
                 }
@@ -755,8 +749,7 @@ XrmServiceToolkit.Rest = function () {
             req.send(JSON.stringify(object));
             if (req.status === 201) {
                 successCallback(JSON.parse(req.responseText, dateReviver).d);
-            }
-            else {
+            } else {
                 errorCallback(errorHandler(req));
             }
         }
@@ -828,11 +821,10 @@ XrmServiceToolkit.Rest = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState === 4 /* complete */) {
+                if (req.readyState === 4 /* complete */ ) {
                     if (req.status === 200) {
                         successCallback(JSON.parse(req.responseText, dateReviver).d);
-                    }
-                    else {
+                    } else {
                         errorCallback(errorHandler(req));
                     }
                 }
@@ -842,8 +834,7 @@ XrmServiceToolkit.Rest = function () {
             req.send();
             if (req.status === 200) {
                 successCallback(JSON.parse(req.responseText, dateReviver).d);
-            }
-            else {
+            } else {
                 errorCallback(errorHandler(req));
             }
         }
@@ -892,11 +883,10 @@ XrmServiceToolkit.Rest = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState === 4 /* complete */) {
+                if (req.readyState === 4 /* complete */ ) {
                     if (req.status === 204 || req.status === 1223) {
                         successCallback();
-                    }
-                    else {
+                    } else {
                         errorCallback(errorHandler(req));
                     }
                 }
@@ -906,8 +896,7 @@ XrmServiceToolkit.Rest = function () {
             req.send(JSON.stringify(object));
             if (req.status === 204 || req.status === 1223) {
                 successCallback();
-            }
-            else {
+            } else {
                 errorCallback(errorHandler(req));
             }
         }
@@ -950,11 +939,10 @@ XrmServiceToolkit.Rest = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState === 4 /* complete */) {
+                if (req.readyState === 4 /* complete */ ) {
                     if (req.status === 204 || req.status === 1223) {
                         successCallback();
-                    }
-                    else {
+                    } else {
                         errorCallback(errorHandler(req));
                     }
                 }
@@ -964,8 +952,7 @@ XrmServiceToolkit.Rest = function () {
             req.send();
             if (req.status === 204 || req.status === 1223) {
                 successCallback();
-            }
-            else {
+            } else {
                 errorCallback(errorHandler(req));
             }
         }
@@ -1012,8 +999,7 @@ XrmServiceToolkit.Rest = function () {
         if (options != null) {
             if (options.charAt(0) !== "?") {
                 optionsString = "?" + options;
-            }
-            else {
+            } else {
                 optionsString = options;
             }
         }
@@ -1025,7 +1011,7 @@ XrmServiceToolkit.Rest = function () {
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState === 4 /* complete */) {
+                if (req.readyState === 4 /* complete */ ) {
                     if (req.status === 200) {
                         var returned = JSON.parse(req.responseText, dateReviver).d;
                         successCallback(returned.results);
@@ -1035,8 +1021,7 @@ XrmServiceToolkit.Rest = function () {
                             var queryOptions = returned.__next.substring((oDataPath() + type).length);
                             retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, onComplete, async);
                         }
-                    }
-                    else {
+                    } else {
                         errorCallback(errorHandler(req));
                     }
                 }
@@ -1053,8 +1038,7 @@ XrmServiceToolkit.Rest = function () {
                     var queryOptions = returned.__next.substring((oDataPath() + type).length);
                     retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, onComplete, async);
                 }
-            }
-            else {
+            } else {
                 errorCallback(errorHandler(req));
             }
         }
@@ -1072,19 +1056,17 @@ XrmServiceToolkit.Rest = function () {
 
         if (settings.async) {
             request.onreadystatechange = function () {
-                if (request.readyState === 4 /*Complete*/) {
+                if (request.readyState === 4 /*Complete*/ ) {
                     // Status 201 is for create, status 204/1223 for link and delete.
                     // There appears to be an issue where IE maps the 204 status to 1223
                     // when no content is returned.
                     if (request.status === 204 || request.status === 1223 || request.status === 201) {
                         settings.success(request);
-                    }
-                    else {
+                    } else {
                         // Failure
                         if (settings.error) {
                             settings.error(errorHandler(request));
-                        }
-                        else {
+                        } else {
                             errorHandler(request);
                         }
                     }
@@ -1093,26 +1075,22 @@ XrmServiceToolkit.Rest = function () {
 
             if (typeof settings.data === "undefined") {
                 request.send();
-            }
-            else {
+            } else {
                 request.send(settings.data);
             }
         } else {
             if (typeof settings.data === "undefined") {
                 request.send();
-            }
-            else {
+            } else {
                 request.send(settings.data);
             }
             if (request.status === 204 || request.status === 1223 || request.status === 201) {
                 settings.success(request);
-            }
-            else {
+            } else {
                 // Failure
                 if (settings.error) {
                     settings.error(errorHandler(request));
-                }
-                else {
+                } else {
                     errorHandler(request);
                 }
             }
@@ -1236,7 +1214,7 @@ XrmServiceToolkit.Rest = function () {
 XrmServiceToolkit.Soap = function () {
 
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message): alert(message);
     };
 
     var htmlEncode = function (s) {
@@ -1247,7 +1225,9 @@ XrmServiceToolkit.Soap = function () {
                 buffer += String.fromCharCode(c);
             else buffer += "&#" + c + ";";
             if (++count === 500) {
-                hEncode += buffer; buffer = ""; count = 0;
+                hEncode += buffer;
+                buffer = "";
+                count = 0;
             }
         }
         if (buffer.length) hEncode += buffer;
@@ -1265,12 +1245,11 @@ XrmServiceToolkit.Soap = function () {
                 if (cnt + 1 < s.length) {
                     var c1 = s.charCodeAt(cnt + 1);
                     if (c1 >= 56320 && c1 <= 57343) {
-                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose"; cnt++;
-                    }
-                    else
+                        buffer += "CRMEntityReferenceOpen" + ((c0 - 55296) * 1024 + (c1 & 1023) + 65536).toString(16) + "CRMEntityReferenceClose";
+                        cnt++;
+                    } else
                         buffer += String.fromCharCode(c0);
-                }
-                else buffer += String.fromCharCode(c0);
+                } else buffer += String.fromCharCode(c0);
             else buffer += String.fromCharCode(c0);
         }
         s = buffer;
@@ -1292,8 +1271,8 @@ XrmServiceToolkit.Soap = function () {
         // ReSharper disable UsageOfPossiblyUnassignedValue
         // ReSharper disable ExpressionIsAlwaysConst
         if ('undefined' === typeof s || 'unknown' === typeof s || null === s) return s;
-            // ReSharper restore ExpressionIsAlwaysConst
-            // ReSharper restore UsageOfPossiblyUnassignedValue
+        // ReSharper restore ExpressionIsAlwaysConst
+        // ReSharper restore UsageOfPossiblyUnassignedValue
         else if (typeof s != "string") s = s.toString();
         return innerSurrogateAmpersandWorkaround(s);
     };
@@ -1315,11 +1294,11 @@ XrmServiceToolkit.Soap = function () {
 
     var encodeDate = function (dateTime) {
         return dateTime.getFullYear() + "-" +
-               padNumber(dateTime.getMonth() + 1) + "-" +
-               padNumber(dateTime.getDate()) + "T" +
-               padNumber(dateTime.getHours()) + ":" +
-               padNumber(dateTime.getMinutes()) + ":" +
-               padNumber(dateTime.getSeconds());
+            padNumber(dateTime.getMonth() + 1) + "-" +
+            padNumber(dateTime.getDate()) + "T" +
+            padNumber(dateTime.getHours()) + ":" +
+            padNumber(dateTime.getMinutes()) + ":" +
+            padNumber(dateTime.getSeconds());
     };
 
     var encodeValue = function (value) {
@@ -1330,9 +1309,10 @@ XrmServiceToolkit.Soap = function () {
 
         // ReSharper disable QualifiedExpressionMaybeNull
         return (typeof value === "object" && value.getTime)
-        // ReSharper restore QualifiedExpressionMaybeNull
-               ? encodeDate(value)
-               : crmXmlEncode(value);
+            // ReSharper restore QualifiedExpressionMaybeNull
+            ?
+            encodeDate(value) :
+            crmXmlEncode(value);
     };
 
     var context = function () {
@@ -1343,18 +1323,14 @@ XrmServiceToolkit.Soap = function () {
         var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
-        }
-        else if (typeof GetGlobalContext != "undefined") {
+        } else if (typeof GetGlobalContext != "undefined") {
             oContext = GetGlobalContext();
-        }
-        else {
+        } else {
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
-            }
-            else if (typeof window.parent.Xrm != "undefined") {
+            } else if (typeof window.parent.Xrm != "undefined") {
                 oContext = window.parent.Xrm.Page.context;
-            }
-            else {
+            } else {
                 throw new Error("Context is not available.");
             }
         }
@@ -1460,18 +1436,19 @@ XrmServiceToolkit.Soap = function () {
     };
 
     var isNodeNull = function (node) {
-        if (node == null)
-        { return true; }
-        if ((node.attributes.getNamedItem("i:nil") != null) && (node.attributes.getNamedItem("i:nil").value === "true"))
-        { return true; }
+        if (node == null) {
+            return true;
+        }
+        if ((node.attributes.getNamedItem("i:nil") != null) && (node.attributes.getNamedItem("i:nil").value === "true")) {
+            return true;
+        }
         return false;
     };
 
     var selectNodes = function (node, xPathExpression) {
         if (typeof (node.selectNodes) != "undefined") {
             return node.selectNodes(xPathExpression);
-        }
-        else {
+        } else {
             var output = [];
             var xPathResults = node.evaluate(xPathExpression, node, nsResolver, XPathResult.ANY_TYPE, null);
             var result = xPathResults.iterateNext();
@@ -1486,8 +1463,7 @@ XrmServiceToolkit.Soap = function () {
     var selectSingleNode = function (node, xpathExpr) {
         if (typeof (node.selectSingleNode) != "undefined") {
             return node.selectSingleNode(xpathExpr);
-        }
-        else {
+        } else {
             var xpe = new XPathEvaluator();
             var results = xpe.evaluate(xpathExpr, node, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             return results.singleNodeValue;
@@ -1497,12 +1473,12 @@ XrmServiceToolkit.Soap = function () {
 
     var selectSingleNodeText = function (node, xpathExpr) {
         var x = selectSingleNode(node, xpathExpr);
-        if (isNodeNull(x))
-        { return null; }
+        if (isNodeNull(x)) {
+            return null;
+        }
         if (typeof (x.text) != "undefined") {
             return x.text;
-        }
-        else {
+        } else {
             return x.textContent;
         }
     };
@@ -1510,8 +1486,7 @@ XrmServiceToolkit.Soap = function () {
     var getNodeText = function (node) {
         if (typeof (node.text) != "undefined") {
             return node.text;
-        }
-        else {
+        } else {
             return node.textContent;
         }
     };
@@ -1562,8 +1537,7 @@ XrmServiceToolkit.Soap = function () {
                 } else {
                     if (typeof responseXml.xml !== "undefined") {
                         xmlString = responseXml.xml;
-                    }
-                    else if (typeof responseXml[0].xml !== "undefined") {
+                    } else if (typeof responseXml[0].xml !== "undefined") {
                         xmlString = responseXml[0].xml;
                     }
 
@@ -1577,9 +1551,9 @@ XrmServiceToolkit.Soap = function () {
 
     businessEntity.prototype = {
         /**
-        * Serialize a CRM Business Entity object to XML string in order to be passed to CRM Web Services.
-        * @return {String} The serialized XML string of CRM entity.
-        */
+         * Serialize a CRM Business Entity object to XML string in order to be passed to CRM Web Services.
+         * @return {String} The serialized XML string of CRM entity.
+         */
         serialize: function () {
             var xml = ["<b:value i:type='a:Entity'>"];
             xml.push('<a:Attributes xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic">');
@@ -1594,9 +1568,9 @@ XrmServiceToolkit.Soap = function () {
                     if (attribute === null || attribute.value === null) {
                         xml.push("<b:value i:nil='true' />");
                     } else {
-                        var sType = (!attribute.type)
-                            ? typeof attribute
-                            : crmXmlEncode(attribute.type);
+                        var sType = (!attribute.type) ?
+                            typeof attribute :
+                            crmXmlEncode(attribute.type);
                         var value;
                         var encodedValue;
                         var id;
@@ -1604,29 +1578,64 @@ XrmServiceToolkit.Soap = function () {
                         var logicalName;
                         var encodedLogicalName;
                         switch (sType) {
-                        case "OptionSetValue":
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            encodedValue = encodeValue(value);
-                            xml.push("<b:value i:type='a:OptionSetValue'>");
-                            xml.push("<a:Value>", encodedValue, "</a:Value>", "</b:value>");
-                            break;
+                            case "OptionSetValue":
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                encodedValue = encodeValue(value);
+                                xml.push("<b:value i:type='a:OptionSetValue'>");
+                                xml.push("<a:Value>", encodedValue, "</a:Value>", "</b:value>");
+                                break;
 
-                        case "EntityCollection":
-                            xml.push("<b:value i:type='a:EntityCollection'>");
-                            xml.push("<a:Entities>");
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            var collections = isArray(value) ? value : [value];
+                            case "EntityCollection":
+                                xml.push("<b:value i:type='a:EntityCollection'>");
+                                xml.push("<a:Entities>");
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                var collections = isArray(value) ? value : [value];
 
-                            for (var i = 0, collectionLengh = collections.length; i < collectionLengh; i++) {
-                                var item = collections[i];
-                                id = (item.hasOwnProperty("id")) ? item["id"] : item;
+                                for (var i = 0, collectionLengh = collections.length; i < collectionLengh; i++) {
+                                    var item = collections[i];
+                                    id = (item.hasOwnProperty("id")) ? item["id"] : item;
+                                    encodedId = encodeValue(id);
+                                    logicalName = (item.hasOwnProperty("logicalName")) ? item["logicalName"] : item;
+                                    encodedLogicalName = encodeValue(logicalName);
+                                    xml.push("<a:Entity>");
+                                    xml.push("<a:Attributes>");
+                                    xml.push("<a:KeyValuePairOfstringanyType>");
+                                    xml.push("<b:key>partyid</b:key>");
+                                    xml.push("<b:value i:type='a:EntityReference'>");
+                                    xml.push("<a:Id>", encodedId, "</a:Id>");
+                                    if (Xrm.Utility.openQuickCreate !== undefined) {
+                                        xml.push("<a:KeyAttributes xmlns:c='http://schemas.microsoft.com/xrm/7.1/Contracts' />");
+                                    }
+                                    xml.push("<a:LogicalName>", encodedLogicalName, "</a:LogicalName>");
+                                    xml.push("<a:Name i:nil='true' />");
+                                    if (Xrm.Utility.openQuickCreate !== undefined) {
+                                        xml.push("<a:RowVersion i:nil='true' />");
+                                    }
+                                    xml.push("</b:value>");
+                                    xml.push("</a:KeyValuePairOfstringanyType>");
+                                    xml.push("</a:Attributes>");
+                                    xml.push("<a:EntityState i:nil='true' />");
+                                    xml.push("<a:FormattedValues />");
+                                    xml.push("<a:Id>00000000-0000-0000-0000-000000000000</a:Id>");
+                                    xml.push("<a:LogicalName>activityparty</a:LogicalName>");
+                                    xml.push("<a:RelatedEntities />");
+                                    xml.push("</a:Entity>");
+                                }
+                                xml.push("</a:Entities>");
+                                xml.push("<a:EntityName i:nil='true' />");
+                                xml.push("<a:MinActiveRowVersion i:nil='true' />");
+                                xml.push("<a:MoreRecords>false</a:MoreRecords>");
+                                xml.push("<a:PagingCookie i:nil='true' />");
+                                xml.push("<a:TotalRecordCount>0</a:TotalRecordCount>");
+                                xml.push("<a:TotalRecordCountLimitExceeded>false</a:TotalRecordCountLimitExceeded>");
+                                xml.push("</b:value>");
+                                break;
+
+                            case "EntityReference":
+                                id = (attribute.hasOwnProperty("id")) ? attribute["id"] : attribute;
                                 encodedId = encodeValue(id);
-                                logicalName = (item.hasOwnProperty("logicalName")) ? item["logicalName"] : item;
+                                logicalName = (attribute.hasOwnProperty("logicalName")) ? attribute["logicalName"] : attribute;
                                 encodedLogicalName = encodeValue(logicalName);
-                                xml.push("<a:Entity>");
-                                xml.push("<a:Attributes>");
-                                xml.push("<a:KeyValuePairOfstringanyType>");
-                                xml.push("<b:key>partyid</b:key>");
                                 xml.push("<b:value i:type='a:EntityReference'>");
                                 xml.push("<a:Id>", encodedId, "</a:Id>");
                                 if (Xrm.Utility.openQuickCreate !== undefined) {
@@ -1638,71 +1647,36 @@ XrmServiceToolkit.Soap = function () {
                                     xml.push("<a:RowVersion i:nil='true' />");
                                 }
                                 xml.push("</b:value>");
-                                xml.push("</a:KeyValuePairOfstringanyType>");
-                                xml.push("</a:Attributes>");
-                                xml.push("<a:EntityState i:nil='true' />");
-                                xml.push("<a:FormattedValues />");
-                                xml.push("<a:Id>00000000-0000-0000-0000-000000000000</a:Id>");
-                                xml.push("<a:LogicalName>activityparty</a:LogicalName>");
-                                xml.push("<a:RelatedEntities />");
-                                xml.push("</a:Entity>");
-                            }
-                            xml.push("</a:Entities>");
-                            xml.push("<a:EntityName i:nil='true' />");
-                            xml.push("<a:MinActiveRowVersion i:nil='true' />");
-                            xml.push("<a:MoreRecords>false</a:MoreRecords>");
-                            xml.push("<a:PagingCookie i:nil='true' />");
-                            xml.push("<a:TotalRecordCount>0</a:TotalRecordCount>");
-                            xml.push("<a:TotalRecordCountLimitExceeded>false</a:TotalRecordCountLimitExceeded>");
-                            xml.push("</b:value>");
-                            break;
+                                break;
 
-                        case "EntityReference":
-                            id = (attribute.hasOwnProperty("id")) ? attribute["id"] : attribute;
-                            encodedId = encodeValue(id);
-                            logicalName = (attribute.hasOwnProperty("logicalName")) ? attribute["logicalName"] : attribute;
-                            encodedLogicalName = encodeValue(logicalName);
-                            xml.push("<b:value i:type='a:EntityReference'>");
-                            xml.push("<a:Id>", encodedId, "</a:Id>");
-                            if (Xrm.Utility.openQuickCreate !== undefined) {
-                                xml.push("<a:KeyAttributes xmlns:c='http://schemas.microsoft.com/xrm/7.1/Contracts' />");
-                            }
-                            xml.push("<a:LogicalName>", encodedLogicalName, "</a:LogicalName>");
-                            xml.push("<a:Name i:nil='true' />");
-                            if (Xrm.Utility.openQuickCreate !== undefined) {
-                                xml.push("<a:RowVersion i:nil='true' />");
-                            }
-                            xml.push("</b:value>");
-                            break;
+                            case "Money":
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                encodedValue = encodeValue(value);
+                                xml.push("<b:value i:type='a:Money'>");
+                                xml.push("<a:Value>", encodedValue, "</a:Value>", "</b:value>");
+                                break;
 
-                        case "Money":
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            encodedValue = encodeValue(value);
-                            xml.push("<b:value i:type='a:Money'>");
-                            xml.push("<a:Value>", encodedValue, "</a:Value>", "</b:value>");
-                            break;
+                            case "guid":
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                encodedValue = encodeValue(value);
+                                xml.push("<b:value i:type='c:guid' xmlns:c='http://schemas.microsoft.com/2003/10/Serialization/'>");
+                                xml.push(encodedValue, "</b:value>");
+                                break;
 
-                        case "guid":
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            encodedValue = encodeValue(value);
-                            xml.push("<b:value i:type='c:guid' xmlns:c='http://schemas.microsoft.com/2003/10/Serialization/'>");
-                            xml.push(encodedValue, "</b:value>");
-                            break;
+                            case "number":
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                encodedValue = encodeValue(value);
+                                var oType = (parseInt(encodedValue) === encodedValue) ? "c:int" : "c:decimal";
+                                xml.push("<b:value i:type='", oType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>");
+                                xml.push(encodedValue, '</b:value>');
+                                break;
 
-                        case "number":
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            encodedValue = encodeValue(value);
-                            var oType = (parseInt(encodedValue) === encodedValue) ? "c:int" : "c:decimal";
-                            xml.push("<b:value i:type='", oType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>");
-                            xml.push(encodedValue, '</b:value>');
-                            break;
-
-                        default:
-                            value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
-                            encodedValue = encodeValue(value);
-                            sType = (typeof value === "object" && value.getTime) ? "dateTime" : sType;
-                            xml.push("<b:value i:type='c:", sType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>", encodedValue, "</b:value>");
-                            break;
+                            default:
+                                value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
+                                encodedValue = encodeValue(value);
+                                sType = (typeof value === "object" && value.getTime) ? "dateTime" : sType;
+                                xml.push("<b:value i:type='c:", sType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>", encodedValue, "</b:value>");
+                                break;
                         }
                     }
                     xml.push("</a:KeyValuePairOfstringanyType>");
@@ -1719,9 +1693,9 @@ XrmServiceToolkit.Soap = function () {
         },
 
         /**
-        * Deserialize an XML node into a CRM Business Entity object. The XML node comes from CRM Web Service's response.
-        * @param {object} resultNode The XML node returned from CRM Web Service's Fetch, Retrieve, RetrieveMultiple messages.
-        */
+         * Deserialize an XML node into a CRM Business Entity object. The XML node comes from CRM Web Service's response.
+         * @param {object} resultNode The XML node returned from CRM Web Service's Fetch, Retrieve, RetrieveMultiple messages.
+         */
         deserialize: function (resultNode) {
             var obj = new Object();
             var resultNodes = resultNode.childNodes;
@@ -1781,7 +1755,7 @@ XrmServiceToolkit.Soap = function () {
                                                 entRef.name = getNodeText(entityReferenceNode);
                                                 break;
                                         }
-                                    }                              
+                                    }
                                     obj[sKey] = entRef;
                                     break;
 
@@ -1835,17 +1809,13 @@ XrmServiceToolkit.Soap = function () {
                                     entCv.type = sType.replace('c:', '').replace('a:', '');
                                     if (entCv.type === "int") {
                                         entCv.value = parseInt(getNodeText(tempNode));
-                                    }
-                                    else if (entCv.type === "decimal" || entCv.type === "double") {
+                                    } else if (entCv.type === "decimal" || entCv.type === "double") {
                                         entCv.value = parseFloat(getNodeText(tempNode));
-                                    }
-                                    else if (entCv.type === "dateTime") {
+                                    } else if (entCv.type === "dateTime") {
                                         entCv.value = stringToDate(getNodeText(tempNode));
-                                    }
-                                    else if (entCv.type === "boolean") {
+                                    } else if (entCv.type === "boolean") {
                                         entCv.value = (getNodeText(tempNode) === 'false') ? false : true;
-                                    }
-                                    else {
+                                    } else {
                                         entCv.value = getNodeText(tempNode);
                                     }
                                     obj[sKey] = entCv;
@@ -1884,10 +1854,12 @@ XrmServiceToolkit.Soap = function () {
     var getError = function (async, resp, internalCallback) {
         //Error descriptions come from http://support.microsoft.com/kb/193625
 
-        if (resp.status === 12029)
-        { throw new Error("The attempt to connect to the server failed."); }
-        if (resp.status === 12007)
-        { throw new Error("The server name could not be resolved."); }
+        if (resp.status === 12029) {
+            throw new Error("The attempt to connect to the server failed.");
+        }
+        if (resp.status === 12007) {
+            throw new Error("The server name could not be resolved.");
+        }
         var faultXml = resp.responseXML;
 
         var errorMessage = "Unknown (unable to parse the fault)";
@@ -1932,8 +1904,7 @@ XrmServiceToolkit.Soap = function () {
         }
         if (errorCode != null && faultstring != null) {
             errorMessage = "Error Code:" + errorCode + " Message: " + faultstring;
-        }
-        else {
+        } else {
             if (faultstring != null) {
                 errorMessage = faultstring;
             }
@@ -1943,17 +1914,16 @@ XrmServiceToolkit.Soap = function () {
         } else {
             throw new Error(errorMessage);
         }
-      
+
     };
 
     var doRequest = function (soapBody, requestType, async, internalCallback) {
         async = async || false;
 
         // Wrap the Soap Body in a soap:Envelope.
-        var soapXml =
-        ["<soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/'>",
+        var soapXml = ["<soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/'>",
             "<soap:Body>",
-                "<", requestType, " xmlns='http://schemas.microsoft.com/xrm/2011/Contracts/Services' xmlns:i='http://www.w3.org/2001/XMLSchema-instance'>", soapBody, "</", requestType, ">",
+            "<", requestType, " xmlns='http://schemas.microsoft.com/xrm/2011/Contracts/Services' xmlns:i='http://www.w3.org/2001/XMLSchema-instance'>", soapBody, "</", requestType, ">",
             "</soap:Body>",
             "</soap:Envelope>"
         ].join("");
@@ -1965,30 +1935,34 @@ XrmServiceToolkit.Soap = function () {
         req.setRequestHeader("SOAPAction", "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/" + requestType);
 
         //IE10
-        try { req.responseType = 'msxml-document'; } catch (e) { }
+        try {
+            req.responseType = 'msxml-document';
+        } catch (e) {}
 
         if (async) {
             req.onreadystatechange = function () {
-                if (req.readyState === 4 /* complete */) {
+                if (req.readyState === 4 /* complete */ ) {
                     req.onreadystatechange = null; //Addresses potential memory leak issue with IE
-                    if (req.status === 200) { // "OK"          
+                    if (req.status === 200) { // "OK"
                         var doc = req.responseXML;
-                        try { setSelectionNamespaces(doc); } catch (e) { }
+                        try {
+                            setSelectionNamespaces(doc);
+                        } catch (e) {}
                         internalCallback(doc);
-                    }
-                    else {
+                    } else {
                         getError(true, req);
                     }
                 }
             };
 
             req.send(soapXml);
-        }
-        else {
+        } else {
             req.send(soapXml);
             if (req.status === 200) {
                 var doc = req.responseXML;
-                try { setSelectionNamespaces(doc); } catch (e) { }
+                try {
+                    setSelectionNamespaces(doc);
+                } catch (e) {}
                 var result = doc;
                 return !!internalCallback ? internalCallback(result) : result;
             } else {
@@ -2014,17 +1988,17 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        var mBody =
-           ["<request i:type='a:CreateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+        var mBody = ["<request i:type='a:CreateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
             "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
-                "<b:key>Target</b:key>",
-                request,
+            "<b:key>Target</b:key>",
+            request,
             "</a:KeyValuePairOfstringanyType>",
             "</a:Parameters>",
             "<a:RequestId i:nil='true' />",
             "<a:RequestName>Create</a:RequestName>",
-            "</request>"].join("");
+            "</request>"
+        ].join("");
 
         return doRequest(mBody, "Execute", async, function (resultXml) {
             var responseText = selectSingleNodeText(resultXml, "//b:value");
@@ -2055,17 +2029,17 @@ XrmServiceToolkit.Soap = function () {
 
         var async = !!callback;
 
-        var mBody =
-           ["<request i:type='a:UpdateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+        var mBody = ["<request i:type='a:UpdateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
             "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
             "<a:KeyValuePairOfstringanyType>",
-                "<b:key>Target</b:key>",
-                request,
-                "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>Update</a:RequestName>",
-            "</request>"].join("");
+            "<b:key>Target</b:key>",
+            request,
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>Update</a:RequestName>",
+            "</request>"
+        ].join("");
 
         return doRequest(mBody, "Execute", async, function (resultXml) {
             var responseText = selectSingleNodeText(resultXml, "//a:Results");
@@ -2096,11 +2070,10 @@ XrmServiceToolkit.Soap = function () {
         /// A Function used for asynchronous request. If not defined, it sends a synchronous request.
         /// </param>
 
-        var request =
-        [
-             "<request i:type='a:DeleteRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'><a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'><a:KeyValuePairOfstringanyType><b:key>Target</b:key><b:value i:type='a:EntityReference'><a:Id>",
-                  id, "</a:Id><a:LogicalName>",
-                  entityName, "</a:LogicalName><a:Name i:nil='true' /></b:value></a:KeyValuePairOfstringanyType></a:Parameters><a:RequestId i:nil='true' /><a:RequestName>Delete</a:RequestName></request>"
+        var request = [
+            "<request i:type='a:DeleteRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'><a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'><a:KeyValuePairOfstringanyType><b:key>Target</b:key><b:value i:type='a:EntityReference'><a:Id>",
+            id, "</a:Id><a:LogicalName>",
+            entityName, "</a:LogicalName><a:Name i:nil='true' /></b:value></a:KeyValuePairOfstringanyType></a:Parameters><a:RequestId i:nil='true' /><a:RequestName>Delete</a:RequestName></request>"
         ].join("");
 
         var async = !!callback;
@@ -2145,26 +2118,25 @@ XrmServiceToolkit.Soap = function () {
     var fetchMore = function (fetchCoreXml, pageNumber, pageCookie, fetchResults) {
 
         //Build new query
-        var moreFetchXml =
-                [
-                    "<fetch mapping='logical' page='" + pageNumber + "' count='5000' paging-cookie='" + pageCookie + "'>",
-                    fetchCoreXml.replace(/\"/g, "'"),
-                    "</fetch>"
-                ].join("");
+        var moreFetchXml = [
+            "<fetch mapping='logical' page='" + pageNumber + "' count='5000' paging-cookie='" + pageCookie + "'>",
+            fetchCoreXml.replace(/\"/g, "'"),
+            "</fetch>"
+        ].join("");
 
         var moreMsgBody = [
-               "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-                   "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                       "<a:KeyValuePairOfstringanyType>",
-                           "<b:key>Query</b:key>",
-                           "<b:value i:type='a:FetchExpression'>",
-                               "<a:Query>", crmXmlEncode(moreFetchXml), "</a:Query>",
-                           "</b:value>",
-                       "</a:KeyValuePairOfstringanyType>",
-                   "</a:Parameters>",
-                   "<a:RequestId i:nil='true'/>",
-                   "<a:RequestName>RetrieveMultiple</a:RequestName>",
-               "</request>"
+            "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Query</b:key>",
+            "<b:value i:type='a:FetchExpression'>",
+            "<a:Query>", crmXmlEncode(moreFetchXml), "</a:Query>",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true'/>",
+            "<a:RequestName>RetrieveMultiple</a:RequestName>",
+            "</request>"
         ].join("");
 
 
@@ -2207,22 +2179,21 @@ XrmServiceToolkit.Soap = function () {
         var fetchXml = fetchCore;
 
         if (fetchCore.slice(0, 7) === "<entity") {
-            fetchXml =
-                [
-                   "<fetch mapping='logical'>",
-                        fetchCore.replace(/\"/g, "'"),
-                   "</fetch>"
-                ].join("");
+            fetchXml = [
+                "<fetch mapping='logical'>",
+                fetchCore.replace(/\"/g, "'"),
+                "</fetch>"
+            ].join("");
         } else {
             var isAggregate = (fetchCore.indexOf("aggregate=") !== -1);
-            var isLimitedReturn = (fetchCore.indexOf("page='1'") !== -1 && fetchCore.indexOf("count='") !== -1);         
+            var isLimitedReturn = (fetchCore.indexOf("page='1'") !== -1 && fetchCore.indexOf("count='") !== -1);
 
             var distinctPos = fetchCore.indexOf("distinct=");
             var isDistinct = (distinctPos !== -1);
             var valQuotes = fetchCore.substring(distinctPos + 9, distinctPos + 10);
-            var distinctValue = isDistinct
-                ? fetchCore.substring(fetchCore.indexOf("distinct=") + 10, fetchCore.indexOf(valQuotes, fetchCore.indexOf("distinct=") + 10))
-                : "false";
+            var distinctValue = isDistinct ?
+                fetchCore.substring(fetchCore.indexOf("distinct=") + 10, fetchCore.indexOf(valQuotes, fetchCore.indexOf("distinct=") + 10)) :
+                "false";
             var xmlDoc = xmlParser(fetchCore);
             var fetchEntity = selectSingleNode(xmlDoc, "//entity");
             if (fetchEntity === null) {
@@ -2231,39 +2202,36 @@ XrmServiceToolkit.Soap = function () {
             var fetchCoreDom = fetchEntity;
             try {
                 fetchCore = xmlToString(fetchCoreDom).replace(/\"/g, "'");
-            }
-            catch (error) {
+            } catch (error) {
                 if (fetchCoreDom !== undefined && fetchCoreDom.xml) {
                     fetchCore = fetchCoreDom.xml.replace(/\"/g, "'");
-                }
-                else {
+                } else {
                     throw new Error("XrmServiceToolkit.Fetch: This client does not provide the necessary XML features to continue.");
                 }
             }
 
             if (!isAggregate && !isLimitedReturn) {
-                fetchXml =
-                 [
-                     "<fetch mapping='logical' distinct='"+ (isDistinct ? distinctValue : "false") +"' >",
-                     fetchCore,
-                     "</fetch>"
-                 ].join("");
+                fetchXml = [
+                    "<fetch mapping='logical' distinct='" + (isDistinct ? distinctValue : "false") + "' >",
+                    fetchCore,
+                    "</fetch>"
+                ].join("");
             }
         }
 
         var request = [
-               "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-                   "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                       "<a:KeyValuePairOfstringanyType>",
-                           "<b:key>Query</b:key>",
-                           "<b:value i:type='a:FetchExpression'>",
-                               "<a:Query>", crmXmlEncode(fetchXml), "</a:Query>",
-                           "</b:value>",
-                       "</a:KeyValuePairOfstringanyType>",
-                   "</a:Parameters>",
-                   "<a:RequestId i:nil='true'/>",
-                   "<a:RequestName>RetrieveMultiple</a:RequestName>",
-               "</request>"
+            "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Query</b:key>",
+            "<b:value i:type='a:FetchExpression'>",
+            "<a:Query>", crmXmlEncode(fetchXml), "</a:Query>",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true'/>",
+            "<a:RequestName>RetrieveMultiple</a:RequestName>",
+            "</request>"
         ].join("");
 
         var async = !!callback;
@@ -2324,37 +2292,35 @@ XrmServiceToolkit.Soap = function () {
                 attributes += "<c:string>" + columnSet[i] + "</c:string>";
             }
             query = "<a:AllColumns>false</a:AllColumns>" +
-                    "<a:Columns xmlns:c='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
-                        attributes +
-                    "</a:Columns>";
-        }
-        else {
+                "<a:Columns xmlns:c='http://schemas.microsoft.com/2003/10/Serialization/Arrays'>" +
+                attributes +
+                "</a:Columns>";
+        } else {
             query = "<a:AllColumns>true</a:AllColumns><a:Columns xmlns:b='http://schemas.microsoft.com/2003/10/Serialization/Arrays' />";
         }
 
-        var msgBody =
-            [
-               "<request i:type='a:RetrieveRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-                "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                  "<a:KeyValuePairOfstringanyType>",
-                    "<b:key>Target</b:key>",
-                    "<b:value i:type='a:EntityReference'>",
-                      "<a:Id>", encodeValue(id), "</a:Id>",
-                      "<a:LogicalName>", entityName, "</a:LogicalName>",
-                      "<a:Name i:nil='true' />",
-                    "</b:value>",
-                  "</a:KeyValuePairOfstringanyType>",
-                  "<a:KeyValuePairOfstringanyType>",
-                    "<b:key>ColumnSet</b:key>",
-                    "<b:value i:type='a:ColumnSet'>",
-                      query,
-                    "</b:value>",
-                  "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>Retrieve</a:RequestName>",
-              "</request>"
-            ].join("");
+        var msgBody = [
+            "<request i:type='a:RetrieveRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Target</b:key>",
+            "<b:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(id), "</a:Id>",
+            "<a:LogicalName>", entityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>ColumnSet</b:key>",
+            "<b:value i:type='a:ColumnSet'>",
+            query,
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>Retrieve</a:RequestName>",
+            "</request>"
+        ].join("");
 
         var async = !!callback;
 
@@ -2385,18 +2351,18 @@ XrmServiceToolkit.Soap = function () {
         /// </param>
 
         var request = [
-           "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-               "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                   "<a:KeyValuePairOfstringanyType>",
-                       "<b:key>Query</b:key>",
-                       "<b:value i:type='a:QueryExpression'>",
-                           query,
-                       "</b:value>",
-                   "</a:KeyValuePairOfstringanyType>",
-               "</a:Parameters>",
-               "<a:RequestId i:nil='true'/>",
-               "<a:RequestName>RetrieveMultiple</a:RequestName>",
-           "</request>"
+            "<request i:type='a:RetrieveMultipleRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Query</b:key>",
+            "<b:value i:type='a:QueryExpression'>",
+            query,
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true'/>",
+            "<a:RequestName>RetrieveMultiple</a:RequestName>",
+            "</request>"
         ].join("");
 
         var async = !!callback;
@@ -2448,8 +2414,7 @@ XrmServiceToolkit.Soap = function () {
                     }
 
                     output.push("</condition>");
-                }
-                else if (typeof value1 == typeof "") {
+                } else if (typeof value1 == typeof "") {
                     output.push("<condition attribute='", attributes[i], "' operator='eq' value='", encodeValue(value1), "' />");
                 }
             }
@@ -2488,16 +2453,15 @@ XrmServiceToolkit.Soap = function () {
         orderBy = (!!orderBy && isArray(orderBy)) ? orderBy : [orderBy];
         columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
 
-        var xml =
-                [
-                    "<entity name='", entityName, "'>",
-                           joinArray("<attribute name='", columnSet, "' />"),
-                           joinArray("<order attribute='", orderBy, "' />"),
-                        "<filter>",
-                              joinConditionPair(attributes, values),
-                        "</filter>",
-                    "</entity>"
-                ].join("");
+        var xml = [
+            "<entity name='", entityName, "'>",
+            joinArray("<attribute name='", columnSet, "' />"),
+            joinArray("<order attribute='", orderBy, "' />"),
+            "<filter>",
+            joinConditionPair(attributes, values),
+            "</filter>",
+            "</entity>"
+        ].join("");
 
         return fetch(xml, false, callback);
     };
@@ -2531,13 +2495,13 @@ XrmServiceToolkit.Soap = function () {
         columnSet = (!!columnSet && isArray(columnSet)) ? columnSet : [columnSet];
 
         var fetchCore = [
-                    "<entity name='", entityName, "'>",
-                           joinArray("<attribute name='", columnSet, "' />"),
-                           joinArray("<order attribute='", orderBy, "' />"),
-                        "<filter>",
-                              joinConditionPair(attributes, values),
-                        "</filter>",
-                    "</entity>"
+            "<entity name='", entityName, "'>",
+            joinArray("<attribute name='", columnSet, "' />"),
+            joinArray("<order attribute='", orderBy, "' />"),
+            "<filter>",
+            joinConditionPair(attributes, values),
+            "</filter>",
+            "</entity>"
         ].join("");
 
 
@@ -2571,30 +2535,30 @@ XrmServiceToolkit.Soap = function () {
         /// </param>
         var request = [
             "<request i:type='b:SetStateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-                "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<c:key>EntityMoniker</c:key>",
-                        "<c:value i:type='a:EntityReference'>",
-                          "<a:Id>", encodeValue(id), "</a:Id>",
-                          "<a:LogicalName>", entityName, "</a:LogicalName>",
-                          "<a:Name i:nil='true' />",
-                        "</c:value>",
-                      "</a:KeyValuePairOfstringanyType>",
-                      "<a:KeyValuePairOfstringanyType>",
-                        "<c:key>State</c:key>",
-                        "<c:value i:type='a:OptionSetValue'>",
-                          "<a:Value>", stateCode.toString(), "</a:Value>",
-                        "</c:value>",
-                      "</a:KeyValuePairOfstringanyType>",
-                      "<a:KeyValuePairOfstringanyType>",
-                        "<c:key>Status</c:key>",
-                        "<c:value i:type='a:OptionSetValue'>",
-                          "<a:Value>", statusCode.toString(), "</a:Value>",
-                        "</c:value>",
-                      "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>SetState</a:RequestName>",
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>EntityMoniker</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(id), "</a:Id>",
+            "<a:LogicalName>", entityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>State</c:key>",
+            "<c:value i:type='a:OptionSetValue'>",
+            "<a:Value>", stateCode.toString(), "</a:Value>",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Status</c:key>",
+            "<c:value i:type='a:OptionSetValue'>",
+            "<a:Value>", statusCode.toString(), "</a:Value>",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>SetState</a:RequestName>",
             "</request>"
         ].join("");
 
@@ -2647,10 +2611,10 @@ XrmServiceToolkit.Soap = function () {
         for (var i = 0, ilength = relatedEntities.length; i < ilength; i++) {
             if (relatedEntities[i].id !== "") {
                 output.push("<a:EntityReference>",
-                                "<a:Id>", relatedEntities[i].id, "</a:Id>",
-                                "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
-                                "<a:Name i:nil='true' />",
-                            "</a:EntityReference>");
+                    "<a:Id>", relatedEntities[i].id, "</a:Id>",
+                    "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
+                    "<a:Name i:nil='true' />",
+                    "</a:EntityReference>");
             }
         }
 
@@ -2658,31 +2622,31 @@ XrmServiceToolkit.Soap = function () {
 
         var request = [
             "<request i:type='a:AssociateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-                "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>Target</b:key>",
-                        "<b:value i:type='a:EntityReference'>",
-                            "<a:Id>", encodeValue(targetId), "</a:Id>",
-                            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                            "<a:Name i:nil='true' />",
-                        "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>Relationship</b:key>",
-                        "<b:value i:type='a:Relationship'>",
-                            "<a:PrimaryEntityRole>Referenced</a:PrimaryEntityRole>",
-                            "<a:SchemaName>", relationshipName, "</a:SchemaName>",
-                        "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                    "<b:key>RelatedEntities</b:key>",
-                    "<b:value i:type='a:EntityReferenceCollection'>",
-                        relatedXml,
-                    "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>Associate</a:RequestName>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Target</b:key>",
+            "<b:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Relationship</b:key>",
+            "<b:value i:type='a:Relationship'>",
+            "<a:PrimaryEntityRole>Referenced</a:PrimaryEntityRole>",
+            "<a:SchemaName>", relationshipName, "</a:SchemaName>",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>RelatedEntities</b:key>",
+            "<b:value i:type='a:EntityReferenceCollection'>",
+            relatedXml,
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>Associate</a:RequestName>",
             "</request>"
         ].join("");
 
@@ -2735,10 +2699,10 @@ XrmServiceToolkit.Soap = function () {
         for (var i = 0, ilength = relatedEntities.length; i < ilength; i++) {
             if (relatedEntities[i].id !== "") {
                 output.push("<a:EntityReference>",
-                                "<a:Id>", relatedEntities[i].id, "</a:Id>",
-                                "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
-                                "<a:Name i:nil='true' />",
-                            "</a:EntityReference>");
+                    "<a:Id>", relatedEntities[i].id, "</a:Id>",
+                    "<a:LogicalName>", relatedEntityName, "</a:LogicalName>",
+                    "<a:Name i:nil='true' />",
+                    "</a:EntityReference>");
             }
         }
 
@@ -2746,31 +2710,31 @@ XrmServiceToolkit.Soap = function () {
 
         var request = [
             "<request i:type='a:DisassociateRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'>",
-                "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>Target</b:key>",
-                        "<b:value i:type='a:EntityReference'>",
-                            "<a:Id>", encodeValue(targetId), "</a:Id>",
-                            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                            "<a:Name i:nil='true' />",
-                        "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>Relationship</b:key>",
-                        "<b:value i:type='a:Relationship'>",
-                            "<a:PrimaryEntityRole i:nil='true' />",
-                            "<a:SchemaName>", relationshipName, "</a:SchemaName>",
-                        "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                    "<b:key>RelatedEntities</b:key>",
-                    "<b:value i:type='a:EntityReferenceCollection'>",
-                        relatedXml,
-                    "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>Disassociate</a:RequestName>",
+            "<a:Parameters xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Target</b:key>",
+            "<b:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>Relationship</b:key>",
+            "<b:value i:type='a:Relationship'>",
+            "<a:PrimaryEntityRole i:nil='true' />",
+            "<a:SchemaName>", relationshipName, "</a:SchemaName>",
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>RelatedEntities</b:key>",
+            "<b:value i:type='a:EntityReferenceCollection'>",
+            relatedXml,
+            "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>Disassociate</a:RequestName>",
             "</request>"
         ].join("");
 
@@ -2793,11 +2757,11 @@ XrmServiceToolkit.Soap = function () {
         /// Sends synchronous request to retrieve the GUID of the current user.
         ///</summary>
         var request = [
-                "<request i:type='b:WhoAmIRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-                "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />",
-                "<a:RequestId i:nil='true' />",
-                "<a:RequestName>WhoAmI</a:RequestName>",
-                "</request>"
+            "<request i:type='b:WhoAmIRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>WhoAmI</a:RequestName>",
+            "</request>"
         ].join("");
         var xmlDoc = doRequest(request, "Execute");
 
@@ -2810,10 +2774,11 @@ XrmServiceToolkit.Soap = function () {
         /// Sends synchronous request to retrieve the GUID of the current user's business unit.
         ///</summary>
         var request = ["<request i:type='b:WhoAmIRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>WhoAmI</a:RequestName>",
-                      "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic' />",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>WhoAmI</a:RequestName>",
+            "</request>"
+        ].join("");
         var xmlDoc = doRequest(request, "Execute");
 
         return getNodeText(selectNodes(xmlDoc, "//b:value")[1]);
@@ -2823,24 +2788,23 @@ XrmServiceToolkit.Soap = function () {
         ///<summary>
         /// Sends synchronous request to retrieve the list of the current user's roles.
         ///</summary>
-        var xml =
-                [
-                    "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>",
-                      "<entity name='role'>",
-                        "<attribute name='name' />",
-                        "<attribute name='businessunitid' />",
-                        "<attribute name='roleid' />",
-                        "<order attribute='name' descending='false' />" +
-                        "<link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'>",
-                          "<link-entity name='systemuser' from='systemuserid' to='systemuserid' alias='aa'>",
-                            "<filter type='and'>",
-                              "<condition attribute='systemuserid' operator='eq-userid' />",
-                            "</filter>",
-                          "</link-entity>",
-                        "</link-entity>",
-                      "</entity>",
-                    "</fetch>"
-                ].join("");
+        var xml = [
+            "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>",
+            "<entity name='role'>",
+            "<attribute name='name' />",
+            "<attribute name='businessunitid' />",
+            "<attribute name='roleid' />",
+            "<order attribute='name' descending='false' />" +
+            "<link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'>",
+            "<link-entity name='systemuser' from='systemuserid' to='systemuserid' alias='aa'>",
+            "<filter type='and'>",
+            "<condition attribute='systemuserid' operator='eq-userid' />",
+            "</filter>",
+            "</link-entity>",
+            "</link-entity>",
+            "</entity>",
+            "</fetch>"
+        ].join("");
 
         var fetchResult = fetch(xml);
         var roles = [];
@@ -2897,27 +2861,28 @@ XrmServiceToolkit.Soap = function () {
         /// </param>
 
         var request = ["<request i:type='b:AssignRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-                        "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Target</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(targetId), "</a:Id>",
-                              "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                          "<a:KeyValuePairOfstringanyType>",
-                            "<c:key>Assignee</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(assigneeId), "</a:Id>",
-                              "<a:LogicalName>", assigneeEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-                          "</a:KeyValuePairOfstringanyType>",
-                        "</a:Parameters>",
-                        "<a:RequestId i:nil='true' />",
-                        "<a:RequestName>Assign</a:RequestName>",
-                      "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Target</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Assignee</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(assigneeId), "</a:Id>",
+            "<a:LogicalName>", assigneeEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>Assign</a:RequestName>",
+            "</request>"
+        ].join("");
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -2964,30 +2929,31 @@ XrmServiceToolkit.Soap = function () {
         }
 
         var request = ["<request i:type='b:GrantAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Target</c:key>",
-		                    "<c:value i:type='a:EntityReference'>",
-		                      "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-		                      "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-		                      "<a:Name i:nil='true' />",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>PrincipalAccess</c:key>",
-		                    "<c:value i:type='b:PrincipalAccess'>",
-		                      "<b:AccessMask>", accessRightString, "</b:AccessMask>",
-		                      "<b:Principal>",
-			                    "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-			                    "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-			                    "<a:Name i:nil='true' />",
-		                      "</b:Principal>",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                    "</a:Parameters>",
-	                    "<a:RequestId i:nil='true' />",
-	                    "<a:RequestName>GrantAccess</a:RequestName>",
-                    "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Target</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>PrincipalAccess</c:key>",
+            "<c:value i:type='b:PrincipalAccess'>",
+            "<b:AccessMask>", accessRightString, "</b:AccessMask>",
+            "<b:Principal>",
+            "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
+            "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</b:Principal>",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>GrantAccess</a:RequestName>",
+            "</request>"
+        ].join("");
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3034,30 +3000,31 @@ XrmServiceToolkit.Soap = function () {
         }
 
         var request = ["<request i:type='b:ModifyAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Target</c:key>",
-		                    "<c:value i:type='a:EntityReference'>",
-		                      "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-		                      "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-		                      "<a:Name i:nil='true' />",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>PrincipalAccess</c:key>",
-		                    "<c:value i:type='b:PrincipalAccess'>",
-		                      "<b:AccessMask>", accessRightString, "</b:AccessMask>",
-		                      "<b:Principal>",
-			                    "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-			                    "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-			                    "<a:Name i:nil='true' />",
-		                      "</b:Principal>",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                    "</a:Parameters>",
-	                    "<a:RequestId i:nil='true' />",
-	                    "<a:RequestName>ModifyAccess</a:RequestName>",
-                    "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Target</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>PrincipalAccess</c:key>",
+            "<c:value i:type='b:PrincipalAccess'>",
+            "<b:AccessMask>", accessRightString, "</b:AccessMask>",
+            "<b:Principal>",
+            "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
+            "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</b:Principal>",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>ModifyAccess</a:RequestName>",
+            "</request>"
+        ].join("");
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3094,27 +3061,28 @@ XrmServiceToolkit.Soap = function () {
         var revokeeEntityId = accessOptions.revokeeEntityId;
 
         var request = ["<request i:type='b:RevokeAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Target</c:key>",
-		                    "<c:value i:type='a:EntityReference'>",
-		                      "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-		                      "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-		                      "<a:Name i:nil='true' />",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Revokee</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(revokeeEntityId), "</a:Id>",
-                              "<a:LogicalName>", revokeeEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                    "</a:Parameters>",
-	                    "<a:RequestId i:nil='true' />",
-	                    "<a:RequestName>RevokeAccess</a:RequestName>",
-                    "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Target</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Revokee</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(revokeeEntityId), "</a:Id>",
+            "<a:LogicalName>", revokeeEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>RevokeAccess</a:RequestName>",
+            "</request>"
+        ].join("");
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3151,27 +3119,28 @@ XrmServiceToolkit.Soap = function () {
         var principalEntityId = accessOptions.principalEntityId;
 
         var request = ["<request i:type='b:RetrievePrincipalAccessRequest' xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts' xmlns:b='http://schemas.microsoft.com/crm/2011/Contracts'>",
-	                    "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Target</c:key>",
-		                    "<c:value i:type='a:EntityReference'>",
-		                      "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
-		                      "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
-		                      "<a:Name i:nil='true' />",
-		                    "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                      "<a:KeyValuePairOfstringanyType>",
-		                    "<c:key>Principal</c:key>",
-                            "<c:value i:type='a:EntityReference'>",
-                              "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
-                              "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
-                              "<a:Name i:nil='true' />",
-                            "</c:value>",
-	                      "</a:KeyValuePairOfstringanyType>",
-	                    "</a:Parameters>",
-	                    "<a:RequestId i:nil='true' />",
-	                    "<a:RequestName>RetrievePrincipalAccess</a:RequestName>",
-                    "</request>"].join("");
+            "<a:Parameters xmlns:c='http://schemas.datacontract.org/2004/07/System.Collections.Generic'>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Target</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(targetEntityId), "</a:Id>",
+            "<a:LogicalName>", targetEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<c:key>Principal</c:key>",
+            "<c:value i:type='a:EntityReference'>",
+            "<a:Id>", encodeValue(principalEntityId), "</a:Id>",
+            "<a:LogicalName>", principalEntityName, "</a:LogicalName>",
+            "<a:Name i:nil='true' />",
+            "</c:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil='true' />",
+            "<a:RequestName>RetrievePrincipalAccess</a:RequestName>",
+            "</request>"
+        ].join("");
         var async = !!callback;
 
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3185,17 +3154,18 @@ XrmServiceToolkit.Soap = function () {
         // ReSharper restore NotAllPathsReturnValue
     };
 
-    // Added in 1.4.1 for metadata retrieval 
+    // Added in 1.4.1 for metadata retrieval
     // Inspired From Microsoft SDK code to retrieve Metadata using JavaScript
     // Copyright (C) Microsoft Corporation.  All rights reserved.
     var arrayElements = ["Attributes",
-                         "ManyToManyRelationships",
-                         "ManyToOneRelationships",
-                         "OneToManyRelationships",
-                         "Privileges",
-                         "LocalizedLabels",
-                         "Options",
-                         "Targets"];
+        "ManyToManyRelationships",
+        "ManyToOneRelationships",
+        "OneToManyRelationships",
+        "Privileges",
+        "LocalizedLabels",
+        "Options",
+        "Targets"
+    ];
 
     var isMetadataArray = function (elementName) {
         for (var i = 0, ilength = arrayElements.length; i < ilength; i++) {
@@ -3209,8 +3179,7 @@ XrmServiceToolkit.Soap = function () {
     var getNodeName = function (node) {
         if (typeof (node.baseName) != "undefined") {
             return node.baseName;
-        }
-        else {
+        } else {
             return node.localName;
         }
     };
@@ -3228,7 +3197,7 @@ XrmServiceToolkit.Soap = function () {
             var nodeName = getNodeName(node);
 
             switch (nodeName) {
-                //Integer Values        
+                //Integer Values
                 case "ActivityTypeMask":
                 case "ObjectTypeCode":
                 case "ColumnNumber":
@@ -3283,21 +3252,20 @@ XrmServiceToolkit.Soap = function () {
                     }
                     //AttributeRequiredLevelManagedProperty.Value
                     if (
-                          (node.firstChild.nodeValue === "ApplicationRequired") ||
-                          (node.firstChild.nodeValue === "None") ||
-                          (node.firstChild.nodeValue === "Recommended") ||
-                          (node.firstChild.nodeValue === "SystemRequired")
-                       ) {
+                        (node.firstChild.nodeValue === "ApplicationRequired") ||
+                        (node.firstChild.nodeValue === "None") ||
+                        (node.firstChild.nodeValue === "Recommended") ||
+                        (node.firstChild.nodeValue === "SystemRequired")
+                    ) {
                         return node.firstChild.nodeValue;
-                    }
-                    else {
+                    } else {
                         //OptionMetadata.Value
                         return parseInt(node.firstChild.nodeValue, 10);
                     }
                     // ReSharper disable JsUnreachableCode
                     break;
-                    // ReSharper restore JsUnreachableCode   
-                    //String values        
+                    // ReSharper restore JsUnreachableCode
+                    //String values
                 default:
                     return node.firstChild.nodeValue;
             }
@@ -3311,8 +3279,7 @@ XrmServiceToolkit.Soap = function () {
                 var objectTypeName;
                 if ((node.childNodes[iii].attributes != null) && (node.childNodes[iii].attributes.getNamedItem("i:type") != null)) {
                     objectTypeName = node.childNodes[iii].attributes.getNamedItem("i:type").nodeValue.split(":")[1];
-                }
-                else {
+                } else {
 
                     objectTypeName = getNodeName(node.childNodes[iii]);
                 }
@@ -3339,8 +3306,7 @@ XrmServiceToolkit.Soap = function () {
         for (var i = 0, ilength = node.childNodes.length; i < ilength; i++) {
             if (node.childNodes[i].nodeType === 3) {
                 c[getNodeName(node.childNodes[i])] = node.childNodes[i].nodeValue;
-            }
-            else {
+            } else {
                 c[getNodeName(node.childNodes[i])] = objectifyNode(node.childNodes[i]);
             }
 
@@ -3372,20 +3338,21 @@ XrmServiceToolkit.Soap = function () {
         }
 
         var request = [
-             "<request i:type=\"a:RetrieveAllEntitiesRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
-              "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
-               "<a:KeyValuePairOfstringanyType>",
-                "<b:key>EntityFilters</b:key>",
-                "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">" + encodeValue(entityFiltersString) + "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-               "<a:KeyValuePairOfstringanyType>",
-                "<b:key>RetrieveAsIfPublished</b:key>",
-                "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + encodeValue(retrieveIfPublished.toString()) + "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-              "</a:Parameters>",
-              "<a:RequestId i:nil=\"true\" />",
-              "<a:RequestName>RetrieveAllEntities</a:RequestName>",
-            "</request>"].join("");
+            "<request i:type=\"a:RetrieveAllEntitiesRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
+            "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>EntityFilters</b:key>",
+            "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">" + encodeValue(entityFiltersString) + "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>RetrieveAsIfPublished</b:key>",
+            "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + encodeValue(retrieveIfPublished.toString()) + "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil=\"true\" />",
+            "<a:RequestName>RetrieveAllEntities</a:RequestName>",
+            "</request>"
+        ].join("");
 
         var async = !!callback;
         return doRequest(request, "Execute", async, function (resultXml) {
@@ -3435,27 +3402,28 @@ XrmServiceToolkit.Soap = function () {
 
         var request = [
             "<request i:type=\"a:RetrieveEntityRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
-                "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>EntityFilters</b:key>",
-                        "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">", encodeValue(entityFiltersString), "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>MetadataId</b:key>",
-                        "<b:value i:type=\"c:guid\"  xmlns:c=\"http://schemas.microsoft.com/2003/10/Serialization/\">", encodeValue("00000000-0000-0000-0000-000000000000"), "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>RetrieveAsIfPublished</b:key>",
-                        "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(retrieveIfPublished.toString()), "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                    "<a:KeyValuePairOfstringanyType>",
-                        "<b:key>LogicalName</b:key>",
-                        "<b:value i:type=\"c:string\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(logicalName), "</b:value>",
-                    "</a:KeyValuePairOfstringanyType>",
-                "</a:Parameters>",
-                "<a:RequestId i:nil=\"true\" />",
-                "<a:RequestName>RetrieveEntity</a:RequestName>",
-             "</request>"].join("");
+            "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>EntityFilters</b:key>",
+            "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">", encodeValue(entityFiltersString), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>MetadataId</b:key>",
+            "<b:value i:type=\"c:guid\"  xmlns:c=\"http://schemas.microsoft.com/2003/10/Serialization/\">", encodeValue("00000000-0000-0000-0000-000000000000"), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>RetrieveAsIfPublished</b:key>",
+            "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(retrieveIfPublished.toString()), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>LogicalName</b:key>",
+            "<b:value i:type=\"c:string\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(logicalName), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil=\"true\" />",
+            "<a:RequestName>RetrieveEntity</a:RequestName>",
+            "</request>"
+        ].join("");
 
         var async = !!callback;
 
@@ -3498,28 +3466,29 @@ XrmServiceToolkit.Soap = function () {
         ///</param>
 
         var request = [
-             "<request i:type=\"a:RetrieveAttributeRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
-              "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
-               "<a:KeyValuePairOfstringanyType>",
-                "<b:key>EntityLogicalName</b:key>",
-                "<b:value i:type=\"c:string\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(entityLogicalName), "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-               "<a:KeyValuePairOfstringanyType>",
-                "<b:key>MetadataId</b:key>",
-                "<b:value i:type=\"ser:guid\"  xmlns:ser=\"http://schemas.microsoft.com/2003/10/Serialization/\">", encodeValue("00000000-0000-0000-0000-000000000000"), "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-                "<a:KeyValuePairOfstringanyType>",
-                "<b:key>RetrieveAsIfPublished</b:key>",
-              "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(retrieveIfPublished.toString()), "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-               "<a:KeyValuePairOfstringanyType>",
-                "<b:key>LogicalName</b:key>",
-                "<b:value i:type=\"c:string\"   xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(attributeLogicalName), "</b:value>",
-               "</a:KeyValuePairOfstringanyType>",
-              "</a:Parameters>",
-              "<a:RequestId i:nil=\"true\" />",
-              "<a:RequestName>RetrieveAttribute</a:RequestName>",
-             "</request>"].join("");
+            "<request i:type=\"a:RetrieveAttributeRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
+            "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>EntityLogicalName</b:key>",
+            "<b:value i:type=\"c:string\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(entityLogicalName), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>MetadataId</b:key>",
+            "<b:value i:type=\"ser:guid\"  xmlns:ser=\"http://schemas.microsoft.com/2003/10/Serialization/\">", encodeValue("00000000-0000-0000-0000-000000000000"), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>RetrieveAsIfPublished</b:key>",
+            "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(retrieveIfPublished.toString()), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "<a:KeyValuePairOfstringanyType>",
+            "<b:key>LogicalName</b:key>",
+            "<b:value i:type=\"c:string\"   xmlns:c=\"http://www.w3.org/2001/XMLSchema\">", encodeValue(attributeLogicalName), "</b:value>",
+            "</a:KeyValuePairOfstringanyType>",
+            "</a:Parameters>",
+            "<a:RequestId i:nil=\"true\" />",
+            "<a:RequestName>RetrieveAttribute</a:RequestName>",
+            "</request>"
+        ].join("");
 
         var async = !!callback;
 
@@ -3574,7 +3543,7 @@ XrmServiceToolkit.Extension = function () {
     // jQuery Load Help function to add tooltip for attribute in CRM 2011. Unsupported because of the usage of DOM object edit.
     //****************************************************
     var alertMessage = function (message) {
-        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message) : alert(message);
+        (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message): alert(message);
     };
 
     var context = function () {
@@ -3585,18 +3554,14 @@ XrmServiceToolkit.Extension = function () {
         var oContext;
         if (typeof window.GetGlobalContext != "undefined") {
             oContext = window.GetGlobalContext();
-        }
-        else if (typeof GetGlobalContext != "undefined") {
+        } else if (typeof GetGlobalContext != "undefined") {
             oContext = GetGlobalContext();
-        }
-        else {
+        } else {
             if (typeof Xrm != "undefined") {
                 oContext = Xrm.Page.context;
-            }
-            else if (typeof window.parent.Xrm != "undefined") {
+            } else if (typeof window.parent.Xrm != "undefined") {
                 oContext = window.parent.Xrm.Page.context;
-            }
-            else {
+            } else {
                 throw new Error("Context is not available.");
             }
         }
@@ -3617,7 +3582,7 @@ XrmServiceToolkit.Extension = function () {
 
     var jQueryXrmFieldTooltip = function (filename, bDisplayImg) {
         ///<summary>
-        /// A generic configurable method to add tooltip to crm 2011 field. 
+        /// A generic configurable method to add tooltip to crm 2011 field.
         ///</summary>
         ///<param name="filename" type="String">
         /// A JavaScript String corresponding the name of the configuration web resource name in CRM 2011 instance
@@ -3887,8 +3852,7 @@ XrmServiceToolkit.Extension = function () {
                     } else {
                         if (typeof responseXml.xml !== "undefined") {
                             xmlString = responseXml.xml;
-                        }
-                        else if (typeof responseXml[0].xml !== "undefined") {
+                        } else if (typeof responseXml[0].xml !== "undefined") {
                             xmlString = responseXml[0].xml;
                         }
 
@@ -3934,7 +3898,7 @@ XrmServiceToolkit.Extension = function () {
                     var fetchXml = jQueryXrmCustomFilterView.config[customFilterView].fetchXml;
                     var layoutXml = jQueryXrmCustomFilterView.config[customFilterView].layoutXml;
 
-                    //TODO: Adding logics for various field and conditions. More tests required. 
+                    //TODO: Adding logics for various field and conditions. More tests required.
                     if (dynamic != null) {
                         for (var a = 0, alength = dynamic.length; a < alength; a++) {
                             var dynamicControlType = Xrm.Page.getControl(jQuery(dynamic).attr('name')).getControlType();
@@ -3945,18 +3909,18 @@ XrmServiceToolkit.Extension = function () {
                             }
                             var dynamicValue = null;
                             switch (dynamicControlType) {
-                            case 'standard':
-                                dynamicValue = Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
-                                break;
-                            case 'optionset':
-                                dynamicValue = (fieldValueType != null && fieldValueType === 'label') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getSelectionOption().text : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
-                                break;
-                            case 'lookup':
-                                dynamicValue = (fieldValueType != null && fieldValueType === 'name') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].id;
-                                break;
-                            default:
-                                alertMessage(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
-                                break;
+                                case 'standard':
+                                    dynamicValue = Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
+                                    break;
+                                case 'optionset':
+                                    dynamicValue = (fieldValueType != null && fieldValueType === 'label') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getSelectionOption().text : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue();
+                                    break;
+                                case 'lookup':
+                                    dynamicValue = (fieldValueType != null && fieldValueType === 'name') ? Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].name : Xrm.Page.getAttribute(jQuery(dynamic).attr('name')).getValue()[0].id;
+                                    break;
+                                default:
+                                    alertMessage(jQuery(dynamic).attr('name') + " is not supported for filter lookup view. Please change the configuration.");
+                                    break;
                             }
 
                             var operator = jQuery(dynamic).attr('operator');
@@ -3966,20 +3930,20 @@ XrmServiceToolkit.Extension = function () {
                             }
                             var dynamicString = jQuery(dynamic).attr('fetchnote');
                             switch (operator.toLowerCase()) {
-                            case 'contains':
-                            case 'does not contain':
-                                dynamicValue = '%' + dynamicValue + '%';
-                                break;
-                            case 'begins with':
-                            case 'does not begin with':
-                                dynamicValue = dynamicValue + '%';
-                                break;
-                            case 'ends with':
-                            case 'does not end with':
-                                dynamicValue = '%' + dynamicValue;
-                                break;
-                            default:
-                                break;
+                                case 'contains':
+                                case 'does not contain':
+                                    dynamicValue = '%' + dynamicValue + '%';
+                                    break;
+                                case 'begins with':
+                                case 'does not begin with':
+                                    dynamicValue = dynamicValue + '%';
+                                    break;
+                                case 'ends with':
+                                case 'does not end with':
+                                    dynamicValue = '%' + dynamicValue;
+                                    break;
+                                default:
+                                    break;
                             }
 
                             fetchXml = fetchXml.replace(dynamicString, dynamicValue);
@@ -4039,8 +4003,7 @@ XrmServiceToolkit.Extension = function () {
         if (url != null) {
             if (!allowInsert) {
                 url = url.replace("EnableInsert=true", "EnableInsert=false");
-            }
-            else if (!allowEdit) {
+            } else if (!allowEdit) {
                 url = url.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
             }
             notescontrol.attr('url', url);
@@ -4049,8 +4012,7 @@ XrmServiceToolkit.Extension = function () {
             if (src != null) {
                 if (!allowInsert) {
                     src = src.replace("EnableInsert=true", "EnableInsert=false");
-                }
-                else if (!allowEdit) {
+                } else if (!allowEdit) {
                     src = src.replace("EnableInlineEdit=true", "EnableInlineEdit=false");
                 }
                 notescontrol.attr('src', src);
