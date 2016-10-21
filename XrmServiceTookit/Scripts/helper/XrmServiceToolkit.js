@@ -1303,8 +1303,8 @@ XrmServiceToolkit.Soap = function () {
 
     var encodeValue = function (value) {
         // Handle GUIDs wrapped in braces
-        if (typeof value == typeof "" && value.slice(0, 1) === "{" && value.slice(-1) === "}") {
-            value = value.slice(1, -1);
+        if (typeof value == "string") {
+            value = value.replace(/[{}]/g,"");
         }
 
         // ReSharper disable QualifiedExpressionMaybeNull
@@ -1666,7 +1666,7 @@ XrmServiceToolkit.Soap = function () {
                             case "number":
                                 value = (attribute.hasOwnProperty("value")) ? attribute["value"] : attribute;
                                 encodedValue = encodeValue(value);
-                                var oType = (parseInt(encodedValue) === encodedValue) ? "c:int" : "c:decimal";
+                                var oType = (String(value) === encodedValue) ? "c:int" : "c:decimal";
                                 xml.push("<b:value i:type='", oType, "' xmlns:c='http://www.w3.org/2001/XMLSchema'>");
                                 xml.push(encodedValue, '</b:value>');
                                 break;
