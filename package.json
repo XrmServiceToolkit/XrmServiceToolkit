@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@types/xrm": "^8.0.35"
+  }
+}
