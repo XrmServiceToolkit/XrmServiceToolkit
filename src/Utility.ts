@@ -2,7 +2,7 @@ export function alertMessage(message: string): void {
     (Xrm.Utility !== undefined && Xrm.Utility.alertDialog !== undefined) ? Xrm.Utility.alertDialog(message, null) : alert(message);
 }
 
-function htmlEncode(s: string): string {
+export function htmlEncode(s: string): string {
     if (s === null || s === "" || s === undefined) {
         return s;
     }
@@ -146,7 +146,7 @@ export function errorHandler(req): Error {
  * @param {string} key The key used to identify the object property
  * @param {string} value The string value representing a date
  */
-export function dateReviver (key: string, value: string): string | Date {
+export function dateReviver(key: string, value: string): string | Date {
     let a;
     if (typeof value === 'string') {
         a = /Date\(([-+]?\d+)\)/.exec(value);
@@ -160,7 +160,7 @@ export function dateReviver (key: string, value: string): string | Date {
 /**
  * Get an instance of XMLHttpRequest for all browsers
  */
-export function getXhr () {
+export function getXhr() {
     if (XMLHttpRequest) {
         // Chrome, Firefox, IE7+, Opera, Safari
         return new XMLHttpRequest();
@@ -179,5 +179,83 @@ export function getXhr () {
             alertMessage('This browser is not AJAX enabled.');
             return null;
         }
+    }
+}
+
+/**
+ *
+ * Adapted from https://msdn.microsoft.com/en-us/library/mt770370.aspx
+ *
+ * @function request
+ * @description Generic helper function to handle basic XMLHttpRequest calls.
+ * @param {string} action - The request action. String is case-sensitive.
+ * @param {string} uri - An absolute or relative URI. Relative URI starts with a "/".
+ * @param {object} data - An object representing an entity. Required for create and update actions.
+ * @returns {Promise} - A Promise that returns either the request object or an error object.
+ */
+export class Request {
+    action: string;
+    uri: string;
+    data: Object;
+    clientUrl: string;
+    webAPIPath: string;
+
+    constructor(webAPIPath: string, action: string, uri: string, data: Object) {
+        this.action = action;
+        this.uri = uri;
+        this.data = data;
+        this.webAPIPath = webAPIPath;
+        this.clientUrl = getClientUrl();
+    }
+
+    send(): Promise<XMLHttpRequest> {
+        if (!RegExp(this.action, "g").test("POST PATCH PUT GET DELETE")) { // Expected action verbs.
+            throw new Error(`Request: action parameter must be one of the following:
+        "POST, PATCH, PUT, GET, or DELETE.`);
+        }
+
+        if (!(typeof this.uri === "string")) {
+            throw new Error("Sdk.request: uri parameter must be a string.");
+        }
+
+        if ((RegExp(this.action, "g").test("POST PATCH PUT")) && (this.data === null || this.data === undefined)) {
+            throw new Error("Sdk.request: data parameter must not be null for operations that create or modify data.");
+        }
+
+        // Construct a fully qualified URI if a relative URI is passed in.
+        if (this.uri.charAt(0) === "/") {
+            this.uri = this.clientUrl + this.webAPIPath + this.uri;
+        }
+
+        return new Promise(function (resolve, reject) {
+            var request = new XMLHttpRequest();
+            request.open(this.action, encodeURI(this.uri), true);
+            request.setRequestHeader("OData-MaxVersion", "4.0");
+            request.setRequestHeader("OData-Version", "4.0");
+            request.setRequestHeader("Prefer", "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\" return=\"representation\"");
+            request.setRequestHeader("Accept", "application/json");
+            request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            request.onreadystatechange = function () {
+                if (this.readyState === 4) {
+                    request.onreadystatechange = null;
+                    switch (this.status) {
+                        case 200: // Success with content returned in response body.
+                        case 204: // Success with no content returned in response body.
+                            resolve(this);
+                            break;
+                        default: // All other statuses are unexpected so are treated like errors.
+                            var error;
+                            try {
+                                error = JSON.parse(request.response).error;
+                            } catch (e) {
+                                error = new Error("Unexpected Error");
+                            }
+                            reject(error);
+                            break;
+                    }
+                }
+            };
+            request.send(JSON.stringify(this.data));
+        });
     }
 }

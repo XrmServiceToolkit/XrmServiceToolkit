@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@types/es6-promise": "^0.0.32",
     "@types/xrm": "^8.0.35"
   }
 }

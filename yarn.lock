@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/es6-promise@^0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/es6-promise/-/es6-promise-0.0.32.tgz#3bcf44fb1e429f3df76188c8c6d874463ba371fd"
+
 "@types/xrm@^8.0.35":
   version "8.0.35"
   resolved "https://registry.yarnpkg.com/@types/xrm/-/xrm-8.0.35.tgz#b7f21605d96cb8c64cc4d9e25465fb7195c600d4"
